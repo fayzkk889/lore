@@ -1,13 +1,5 @@
 # Lore
 
-```
- _                    _
-| |    ___  _ __ ___ | |
-| |   / _ \| '__/ _ \| |
-| |__| (_) | | |  __/|_|
-|_____\___/|_|  \___|(_)
-```
-
 **Open-source AI coding agent for your terminal. Bring your own API key.**
 
 Lore is a tool-calling agent harness: the model works by reading and writing

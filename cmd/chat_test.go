@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/fayzkk889/lore/internal/agent"
 	"github.com/fayzkk889/lore/internal/config"
 )
@@ -51,6 +54,72 @@ func TestConfiguredPermissionMode(t *testing.T) {
 		Safety: config.SafetyConfig{PermissionMode: "surprise"},
 	}); got != agent.PermissionFullAuto {
 		t.Fatalf("invalid configured permission = %q, want full-auto", got)
+	}
+}
+
+func TestEnterSubmitsSlashCommand(t *testing.T) {
+	m := newTestChatModel(t)
+	m.ta.InsertString("/help")
+
+	next, cmd := m.handleKey(tea.KeyMsg{Type: tea.KeyEnter})
+	got := next.(chatModel)
+	if got.ta.Value() != "" {
+		t.Fatalf("input after enter = %q, want cleared", got.ta.Value())
+	}
+	if cmd == nil {
+		t.Fatal("enter on a slash command returned nil command")
+	}
+}
+
+func TestEnterSubmitsEvenWhenInputContainsNewline(t *testing.T) {
+	m := newTestChatModel(t)
+	m.ta.InsertString("/help\n")
+
+	next, cmd := m.handleKey(tea.KeyMsg{Type: tea.KeyEnter})
+	got := next.(chatModel)
+	if got.ta.Value() != "" {
+		t.Fatalf("input after multiline enter = %q, want cleared", got.ta.Value())
+	}
+	if cmd == nil {
+		t.Fatal("enter on multiline slash command returned nil command")
+	}
+}
+
+func TestCtrlJSubmitsLikeEnter(t *testing.T) {
+	m := newTestChatModel(t)
+	m.ta.InsertString("/help")
+
+	next, cmd := m.handleKey(tea.KeyMsg{Type: tea.KeyCtrlJ})
+	got := next.(chatModel)
+	if got.ta.Value() != "" {
+		t.Fatalf("input after ctrl+j = %q, want cleared", got.ta.Value())
+	}
+	if cmd == nil {
+		t.Fatal("ctrl+j on a slash command returned nil command")
+	}
+}
+
+func TestPasteOrAltEnterInsertsNewline(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		msg  tea.KeyMsg
+	}{
+		{name: "paste", msg: tea.KeyMsg{Type: tea.KeyEnter, Paste: true}},
+		{name: "alt", msg: tea.KeyMsg{Type: tea.KeyEnter, Alt: true}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newTestChatModel(t)
+			m.ta.InsertString("hello")
+
+			next, cmd := m.handleKey(tc.msg)
+			got := next.(chatModel)
+			if got.ta.Value() != "hello\n" {
+				t.Fatalf("input after %s enter = %q, want hello\\n", tc.name, got.ta.Value())
+			}
+			if cmd != nil {
+				t.Fatalf("%s enter returned unexpected command", tc.name)
+			}
+		})
 	}
 }
 
@@ -224,6 +293,18 @@ func TestRunInitUsesPrivateLorePermissions(t *testing.T) {
 		if info.Mode().Perm() != 0o600 {
 			t.Fatalf("%s permissions = %v, want 0600", path, info.Mode().Perm())
 		}
+	}
+}
+
+func newTestChatModel(t *testing.T) chatModel {
+	t.Helper()
+	ta := textarea.New()
+	ta.Focus()
+	return chatModel{
+		ta:         ta,
+		ag:         &agent.Agent{},
+		projectDir: t.TempDir(),
+		permission: agent.PermissionFullAuto,
 	}
 }
 

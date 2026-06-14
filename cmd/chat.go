@@ -390,13 +390,8 @@ func (m chatModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case tea.KeyCtrlD:
 		return m.submit()
 
-	case tea.KeyEnter:
-		if msg.Paste {
-			m.ta.InsertString("\n")
-			m.syncTaHeight()
-			return m, nil
-		}
-		if strings.Contains(m.ta.Value(), "\n") {
+	case tea.KeyEnter, tea.KeyCtrlJ:
+		if msg.Paste || msg.Alt {
 			m.ta.InsertString("\n")
 			m.syncTaHeight()
 			return m, nil
@@ -465,7 +460,6 @@ func (m chatModel) submit() (tea.Model, tea.Cmd) {
 		events <- agentDoneMsg{outcome: outcome}
 	}()
 
-	cmds = append(cmds, m.waitEvent())
 	return m, tea.Batch(cmds...)
 }
 
@@ -710,8 +704,9 @@ commands:
   /exit            quit
 
 keys:
-  Enter            send (single-line input)
-  Ctrl+D           send (multi-line input)
+  Enter            send
+  Alt+Enter        insert a newline
+  Ctrl+D           send
   Ctrl+V           paste
   Esc              cancel the running task
   Ctrl+C           cancel task / quit`)
@@ -834,10 +829,7 @@ func (m chatModel) statusLine() string {
 		}
 		return line
 	default:
-		hint := "Enter to send · /help for commands"
-		if strings.Contains(m.ta.Value(), "\n") {
-			hint = "Ctrl+D to send · Enter for new line"
-		}
+		hint := "Enter to send · Alt+Enter newline · /help"
 		if m.permission != agent.PermissionFullAuto {
 			hint += " · " + string(m.permission)
 		}

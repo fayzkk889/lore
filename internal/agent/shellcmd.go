@@ -141,7 +141,7 @@ func resolveRelDir(base, target string) (string, error) {
 	if t == "" || t == "." {
 		return base, nil
 	}
-	t = filepath.ToSlash(t)
+	t = strings.ReplaceAll(filepath.ToSlash(t), `\`, "/")
 	// Strip drive letter (C:/foo) and leading slashes — treat as root-relative.
 	if len(t) >= 2 && t[1] == ':' {
 		t = t[2:]

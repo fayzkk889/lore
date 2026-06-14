@@ -702,7 +702,7 @@ func hasGoSources(dir string) bool {
 // relativizePath strips drive letters and leading slashes so model-supplied
 // paths are always treated as relative to the project root.
 func relativizePath(p string) string {
-	p = strings.TrimSpace(filepath.ToSlash(p))
+	p = strings.ReplaceAll(strings.TrimSpace(filepath.ToSlash(p)), `\`, "/")
 	if len(p) >= 2 && p[1] == ':' {
 		p = p[2:]
 	}

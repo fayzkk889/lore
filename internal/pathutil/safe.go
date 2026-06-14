@@ -15,26 +15,34 @@ import (
 // Use this for EVERY file write where the path originates from model output,
 // API responses, or any external/untrusted source.
 func SafeJoin(root, untrustedPath string) (string, error) {
-	if filepath.IsAbs(untrustedPath) {
+	normalized := strings.ReplaceAll(untrustedPath, `\`, `/`)
+	if filepath.IsAbs(untrustedPath) || isWindowsAbs(normalized) {
 		return "", fmt.Errorf("absolute path not allowed: %q", untrustedPath)
 	}
 
-	// Reject Unix-style absolute paths on Windows (filepath.IsAbs misses these)
-	if len(untrustedPath) > 0 && (untrustedPath[0] == '/' || untrustedPath[0] == '\\') {
+	if len(normalized) > 0 && normalized[0] == '/' {
 		return "", fmt.Errorf("absolute path not allowed: %q", untrustedPath)
 	}
 
-	cleaned := filepath.Clean(untrustedPath)
-	for _, part := range strings.Split(cleaned, string(filepath.Separator)) {
+	cleaned := filepath.ToSlash(filepath.Clean(normalized))
+	for _, part := range strings.Split(cleaned, "/") {
 		if part == ".." {
 			return "", fmt.Errorf("path traversal not allowed: %q", untrustedPath)
 		}
 	}
 
-	safe, err := securejoin.SecureJoin(root, untrustedPath)
+	safe, err := securejoin.SecureJoin(root, normalized)
 	if err != nil {
 		return "", fmt.Errorf("path validation failed for %q: %w", untrustedPath, err)
 	}
 
 	return safe, nil
+}
+
+func isWindowsAbs(p string) bool {
+	if len(p) >= 3 && p[1] == ':' && (p[2] == '/' || p[2] == '\\') {
+		c := p[0]
+		return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+	}
+	return false
 }

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"lore-cli/internal/shell"
+	"github.com/fayzkk889/lore/internal/shell"
 )
 
 // Check is one runtime smoke check, declared by the model via the verify_app

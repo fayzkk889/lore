@@ -8,8 +8,8 @@ import (
 
 	"github.com/charmbracelet/x/term"
 
-	"lore-cli/internal/config"
-	"lore-cli/internal/display"
+	"github.com/fayzkk889/lore/internal/config"
+	"github.com/fayzkk889/lore/internal/display"
 )
 
 // stdinIsTerminal reports whether stdin is an interactive terminal.

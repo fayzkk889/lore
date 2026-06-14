@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION="0.9.0-beta"
+VERSION="0.9.1-beta"
 REPO="fayzkk889/lore"
 
 # Detect OS and architecture

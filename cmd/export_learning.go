@@ -14,8 +14,8 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
 
-	"lore-cli/internal/display"
-	"lore-cli/internal/fonts"
+	"github.com/fayzkk889/lore/internal/display"
+	"github.com/fayzkk889/lore/internal/fonts"
 )
 
 // ── Page geometry constants (A4 in points, 1pt = 1/72 inch) ──────────────────

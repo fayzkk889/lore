@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"lore-cli/internal/agent"
-	"lore-cli/internal/config"
-	"lore-cli/internal/display"
+	"github.com/fayzkk889/lore/internal/agent"
+	"github.com/fayzkk889/lore/internal/config"
+	"github.com/fayzkk889/lore/internal/display"
 )
 
 // ── "lore config" command group ───────────────────────────────────────────────

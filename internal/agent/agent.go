@@ -16,9 +16,9 @@ import (
 	"strings"
 	"time"
 
-	"lore-cli/internal/engine"
-	"lore-cli/internal/lorefs"
-	"lore-cli/internal/verify"
+	"github.com/fayzkk889/lore/internal/engine"
+	"github.com/fayzkk889/lore/internal/lorefs"
+	"github.com/fayzkk889/lore/internal/verify"
 )
 
 // Agent drives one conversation against a Provider.

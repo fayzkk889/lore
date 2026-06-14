@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"lore-cli/internal/display"
-	"lore-cli/internal/lorefs"
-	"lore-cli/internal/selfcheck"
+	"github.com/fayzkk889/lore/internal/display"
+	"github.com/fayzkk889/lore/internal/lorefs"
+	"github.com/fayzkk889/lore/internal/selfcheck"
 )
 
 // ── Cobra command ─────────────────────────────────────────────────────────────

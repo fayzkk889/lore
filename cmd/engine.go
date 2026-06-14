@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"lore-cli/internal/config"
-	"lore-cli/internal/engine"
+	"github.com/fayzkk889/lore/internal/config"
+	"github.com/fayzkk889/lore/internal/engine"
 )
 
 // Engine selection flags (registered on the root command).

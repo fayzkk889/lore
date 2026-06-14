@@ -24,13 +24,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"lore-cli/internal/agent"
-	"lore-cli/internal/config"
-	"lore-cli/internal/display"
-	"lore-cli/internal/engine"
-	"lore-cli/internal/lorefs"
-	"lore-cli/internal/shell"
-	"lore-cli/internal/snapshot"
+	"github.com/fayzkk889/lore/internal/agent"
+	"github.com/fayzkk889/lore/internal/config"
+	"github.com/fayzkk889/lore/internal/display"
+	"github.com/fayzkk889/lore/internal/engine"
+	"github.com/fayzkk889/lore/internal/lorefs"
+	"github.com/fayzkk889/lore/internal/shell"
+	"github.com/fayzkk889/lore/internal/snapshot"
 )
 
 // ────────────────────────────────────────────────────────────────────────────

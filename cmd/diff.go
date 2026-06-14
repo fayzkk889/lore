@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/fayzkk889/lore/internal/display"
 	"github.com/sergi/go-diff/diffmatchpatch"
-	"lore-cli/internal/display"
 )
 
 // ── Diff computation ──────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"lore-cli/internal/verify"
+	"github.com/fayzkk889/lore/internal/verify"
 )
 
 func TestWriteVerifyLedgerRedactsAndUsesPrivatePermissions(t *testing.T) {

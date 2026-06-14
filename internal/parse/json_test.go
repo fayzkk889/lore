@@ -3,7 +3,7 @@ package parse_test
 import (
 	"testing"
 
-	"lore-cli/internal/parse"
+	"github.com/fayzkk889/lore/internal/parse"
 )
 
 func TestCleanJSON(t *testing.T) {

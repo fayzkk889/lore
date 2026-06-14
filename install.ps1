@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$Version = "0.9.0-beta"
+$Version = "0.9.1-beta"
 $Repo = "fayzkk889/lore"
 
 # Detect architecture

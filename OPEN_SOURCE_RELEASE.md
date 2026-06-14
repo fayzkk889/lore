@@ -57,7 +57,7 @@ to a temporary branch and merge intentionally.
 
 ## 5. Release
 
-- Tag the first public source release, for example `v0.9.0-beta`.
+- Tag the first public source release, for example `v0.9.1-beta`.
 - Let GitHub Actions run GoReleaser.
 - Confirm release archives, checksums, and installer downloads work.
 - Test the install command on a clean machine or temporary environment.

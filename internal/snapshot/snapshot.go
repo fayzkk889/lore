@@ -23,7 +23,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 
-	"lore-cli/internal/lorefs"
+	"github.com/fayzkk889/lore/internal/lorefs"
 )
 
 // SnapshotPrefix is the commit-message prefix used by older git snapshots.

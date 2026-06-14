@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"lore-cli/internal/display"
+	"github.com/fayzkk889/lore/internal/display"
 )
 
 // Version is set by GoReleaser via ldflags at build time.

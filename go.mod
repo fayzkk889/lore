@@ -1,4 +1,4 @@
-module lore-cli
+module github.com/fayzkk889/lore
 
 go 1.24.2
 

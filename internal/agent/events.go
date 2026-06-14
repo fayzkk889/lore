@@ -1,6 +1,6 @@
 package agent
 
-import "lore-cli/internal/engine"
+import "github.com/fayzkk889/lore/internal/engine"
 
 // Event is the agent → UI stream. The TUI and the headless runner both
 // consume these; the agent never prints anything itself.

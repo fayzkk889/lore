@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 
-	"lore-cli/internal/display"
-	"lore-cli/internal/snapshot"
+	"github.com/fayzkk889/lore/internal/display"
+	"github.com/fayzkk889/lore/internal/snapshot"
 )
 
 var flagRollbackLast bool

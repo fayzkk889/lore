@@ -1,7 +1,7 @@
 package main
 
 import (
-	"lore-cli/cmd"
+	"github.com/fayzkk889/lore/cmd"
 )
 
 var version = "dev"

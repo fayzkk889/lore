@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"lore-cli/internal/agent"
-	"lore-cli/internal/config"
+	"github.com/fayzkk889/lore/internal/agent"
+	"github.com/fayzkk889/lore/internal/config"
 )
 
 func TestParsePermissionMode(t *testing.T) {

@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"lore-cli/internal/engine"
-	"lore-cli/internal/lorefs"
-	"lore-cli/internal/pathutil"
-	"lore-cli/internal/shell"
-	"lore-cli/internal/verify"
+	"github.com/fayzkk889/lore/internal/engine"
+	"github.com/fayzkk889/lore/internal/lorefs"
+	"github.com/fayzkk889/lore/internal/pathutil"
+	"github.com/fayzkk889/lore/internal/shell"
+	"github.com/fayzkk889/lore/internal/verify"
 )
 
 // moduleFiles are owned by the harness: the model must never author them.

@@ -1,0 +1,36 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries and coverage artifacts
+*.test
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Environment files — may contain API keys; use .env.example as a template
+.env
+.env.*
+!.env.example
+
+# Lore's own per-project data (session history, snapshots, insights)
+.lore/
+
+# Local agent/editor state
+.claude/
+.idea/
+.vscode/
+
+# Release artifacts
+dist/
+
+# Stray local module caches / vendored copies
+pkg/

@@ -134,6 +134,9 @@ func runChat(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
+	if _, err := ensureLoreWiki(cwd); err != nil {
+		return fmt.Errorf("initializing .lore wiki: %w", err)
+	}
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -438,8 +441,10 @@ func (m chatModel) submit() (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	cmds = append(cmds, tea.Printf("\n%s%s\n", display.PromptStyle.Render("❯ "), display.BoldStyle.Render(input)))
 
-	if hash, _, _ := snapshot.CreateSnapshot(m.projectDir); hash != "" {
+	if hash, warn, _ := snapshot.CreateSnapshot(m.projectDir); hash != "" {
 		cmds = append(cmds, tea.Printf("%s\n", display.DimStyle.Render("· snapshot "+hash+" saved (undo with /rollback)")))
+	} else if warn != "" {
+		cmds = append(cmds, tea.Printf("%s\n", display.DimStyle.Render("· "+warn)))
 	}
 
 	m.ag.Permission = m.permission

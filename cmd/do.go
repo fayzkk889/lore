@@ -66,6 +66,9 @@ func newDoCmd() *cobra.Command {
 			if err := os.MkdirAll(workDir, 0o755); err != nil {
 				return fmt.Errorf("creating project directory: %w", err)
 			}
+			if _, err := ensureLoreWiki(workDir); err != nil {
+				return fmt.Errorf("initializing .lore wiki: %w", err)
+			}
 
 			fmt.Printf("lore %s — engine: %s\nproject: %s\n\n", Version, provider.Name(), workDir)
 			fmt.Println("probing environment...")

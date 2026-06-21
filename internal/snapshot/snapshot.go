@@ -31,6 +31,11 @@ const SnapshotPrefix = "lore-snapshot:"
 
 var errLocalSnapshotNotFound = errors.New("local snapshot not found")
 
+const (
+	maxSnapshotFiles = 1200
+	maxSnapshotBytes = 48 * 1024 * 1024
+)
+
 // Snapshot represents a single rollback point.
 type Snapshot struct {
 	Hash      string
@@ -58,6 +63,10 @@ func CreateSnapshot(projectDir string) (hash string, warn string, err error) {
 	}
 	if err := lorefs.MkdirPrivate(filepath.Join(loreDir, "snapshots")); err != nil {
 		return "", "", fmt.Errorf("creating snapshots directory: %w", err)
+	}
+	files, bytes, ok := snapshotWithinBudget(projectDir)
+	if !ok {
+		return "", fmt.Sprintf("snapshot skipped: project is too large for a quick rollback snapshot (%d files, %s+)", files, formatBytes(bytes)), nil
 	}
 	root := filepath.Join(projectDir, ".lore", "snapshots", id)
 	filesRoot := filepath.Join(root, "files")
@@ -115,6 +124,37 @@ func CreateSnapshot(projectDir string) (hash string, warn string, err error) {
 		return "", "", fmt.Errorf("writing snapshot manifest: %w", err)
 	}
 	return shortID(id), "", nil
+}
+
+func snapshotWithinBudget(projectDir string) (files int, bytes int64, ok bool) {
+	ok = true
+	_ = filepath.Walk(projectDir, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return nil
+		}
+		rel, err := filepath.Rel(projectDir, path)
+		if err != nil || rel == "." {
+			return nil
+		}
+		rel = filepath.ToSlash(rel)
+		if info.IsDir() {
+			if skipDir(info.Name()) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if shouldSkipFileByName(rel, info) {
+			return nil
+		}
+		files++
+		bytes += info.Size()
+		if files > maxSnapshotFiles || bytes > maxSnapshotBytes {
+			ok = false
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	return files, bytes, ok
 }
 
 // ListSnapshots returns recent local snapshots, followed by older git
@@ -397,6 +437,13 @@ func isBinaryName(name string) bool {
 }
 
 func shouldSkipFile(path, rel string, info os.FileInfo) bool {
+	if shouldSkipFileByName(rel, info) {
+		return true
+	}
+	return hasSensitiveContent(path, info.Size())
+}
+
+func shouldSkipFileByName(rel string, info os.FileInfo) bool {
 	name := strings.ToLower(info.Name())
 	rel = strings.ToLower(filepath.ToSlash(rel))
 	if info.Size() > 5*1024*1024 || isBinaryName(name) {
@@ -418,7 +465,7 @@ func shouldSkipFile(path, rel string, info os.FileInfo) bool {
 		strings.Contains(rel, "token") {
 		return true
 	}
-	return hasSensitiveContent(path, info.Size())
+	return false
 }
 
 func hasSensitiveContent(path string, size int64) bool {
@@ -448,4 +495,17 @@ func hasSensitiveContent(path string, size int64) bool {
 		}
 	}
 	return false
+}
+
+func formatBytes(n int64) string {
+	const unit = 1024
+	if n < unit {
+		return fmt.Sprintf("%d B", n)
+	}
+	div, exp := int64(unit), 0
+	for v := n / unit; v >= unit; v /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %ciB", float64(n)/float64(div), "KMGTPE"[exp])
 }

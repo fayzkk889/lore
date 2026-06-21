@@ -41,15 +41,32 @@ func runInit(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
 
-	loreDir := filepath.Join(cwd, ".lore")
-
-	// Already initialised?
-	if _, err := os.Stat(loreDir); err == nil {
+	created, err := ensureLoreWiki(cwd)
+	if err != nil {
+		return err
+	}
+	if !created {
 		fmt.Println(display.DimStyle.Render("Already initialized — .lore/ exists."))
 		return nil
 	}
 
-	// ── Create base directories ───────────────────────────────────────────────
+	check := lipgloss.NewStyle().Foreground(display.ColorGreen).Render("✓")
+	fmt.Printf("%s %s\n", check, display.SuccessStyle.Render("Initialized Lore wiki in .lore/"))
+
+	runBaselineCheck(cwd)
+
+	fmt.Println(display.DimStyle.Render("  Next: run `lore` and ask the agent to explore the project"))
+	return nil
+}
+
+func ensureLoreWiki(cwd string) (bool, error) {
+	loreDir := filepath.Join(cwd, ".lore")
+	_, statErr := os.Stat(loreDir)
+	created := os.IsNotExist(statErr)
+	if statErr != nil && !created {
+		return false, fmt.Errorf("checking .lore directory: %w", statErr)
+	}
+
 	dirs := []string{
 		loreDir,
 		filepath.Join(loreDir, "architecture"),
@@ -61,12 +78,9 @@ func runInit(_ *cobra.Command, _ []string) error {
 	}
 	for _, dir := range dirs {
 		if err := lorefs.MkdirPrivate(dir); err != nil {
-			return fmt.Errorf("creating %s: %w", dir, err)
+			return false, fmt.Errorf("creating %s: %w", dir, err)
 		}
 	}
-
-	// ── Write wiki seed files ─────────────────────────────────────────────────
-	check := lipgloss.NewStyle().Foreground(display.ColorGreen).Render("✓")
 
 	seedFiles := map[string]string{
 		filepath.Join(loreDir, "index.md"):  indexContent,
@@ -75,17 +89,17 @@ func runInit(_ *cobra.Command, _ []string) error {
 		filepath.Join(loreDir, "schema.md"): schemaContent,
 	}
 	for path, content := range seedFiles {
+		if _, err := os.Stat(path); err == nil {
+			continue
+		} else if err != nil && !os.IsNotExist(err) {
+			return false, fmt.Errorf("checking %s: %w", filepath.Base(path), err)
+		}
 		if err := lorefs.WritePrivate(path, []byte(content)); err != nil {
-			return fmt.Errorf("writing %s: %w", filepath.Base(path), err)
+			return false, fmt.Errorf("writing %s: %w", filepath.Base(path), err)
 		}
 	}
 
-	fmt.Printf("%s %s\n", check, display.SuccessStyle.Render("Initialized Lore wiki in .lore/"))
-
-	runBaselineCheck(cwd)
-
-	fmt.Println(display.DimStyle.Render("  Next: run `lore` and ask the agent to explore the project"))
-	return nil
+	return created, nil
 }
 
 // ── Baseline build check ──────────────────────────────────────────────────────

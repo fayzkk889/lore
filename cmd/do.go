@@ -63,8 +63,15 @@ func newDoCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := os.MkdirAll(workDir, 0o755); err != nil {
-				return fmt.Errorf("creating project directory: %w", err)
+			info, err := os.Stat(workDir)
+			if err != nil {
+				if os.IsNotExist(err) {
+					return fmt.Errorf("project directory does not exist: %s", workDir)
+				}
+				return fmt.Errorf("checking project directory: %w", err)
+			}
+			if !info.IsDir() {
+				return fmt.Errorf("project path is not a directory: %s", workDir)
 			}
 			if _, err := ensureLoreWiki(workDir); err != nil {
 				return fmt.Errorf("initializing .lore wiki: %w", err)

@@ -159,12 +159,12 @@ func detect(dir string) (kind string, commands []command) {
 
 	case exists(dir, "pyproject.toml"):
 		return "python", []command{
-			{"python", []string{"-m", "py_compile"}},
+			{"python", []string{"-m", "compileall", "-q", "."}},
 		}
 
 	case exists(dir, "requirements.txt"):
 		return "python", []command{
-			{"python", []string{"-m", "py_compile"}},
+			{"python", []string{"-m", "compileall", "-q", "."}},
 		}
 
 	case exists(dir, "Makefile"):
@@ -271,7 +271,9 @@ func RunForFiles(dir string, changedFiles []string, timeout time.Duration) Resul
 		}
 	}
 	if len(pyFiles) == 0 {
-		return Result{Skipped: true}
+		// Config-only changes (pyproject.toml, requirements.txt) still
+		// warrant a full project verification.
+		return Run(dir, timeout)
 	}
 	args := append([]string{"-m", "py_compile"}, pyFiles...)
 

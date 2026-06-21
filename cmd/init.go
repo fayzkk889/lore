@@ -19,6 +19,7 @@ import (
 // ── Cobra command ─────────────────────────────────────────────────────────────
 
 var flagInitModernize bool
+var flagInitForce bool
 
 func newInitCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -30,6 +31,7 @@ Run this once per project before starting a chat session.`,
 		SilenceUsage: true,
 	}
 	cmd.Flags().BoolVar(&flagInitModernize, "modernize", false, "also run legacy React compatibility fixes before the baseline check")
+	cmd.Flags().BoolVar(&flagInitForce, "force", false, "apply destructive modernize changes instead of printing recommendations")
 	return cmd
 }
 
@@ -109,7 +111,7 @@ func ensureLoreWiki(cwd string) (bool, error) {
 // builds with full verification.
 func runBaselineCheck(cwd string) {
 	if flagInitModernize {
-		modernizeProject(cwd)
+		modernizeProject(cwd, flagInitForce)
 	}
 
 	result := selfcheck.Run(cwd, 0)
@@ -203,7 +205,8 @@ func writeBaselineConfig(cwd string, passed bool, command string) {
 
 // modernizeProject performs silent, filesystem-only compatibility fixes for
 // React projects after the build check passes. No model calls are made.
-func modernizeProject(cwd string) {
+func modernizeProject(cwd string, force bool) {
+	var recommendations []string
 	changed := false
 
 	// ── 1. React 18: replace ReactDOM.render with createRoot ─────────────────
@@ -221,9 +224,15 @@ func modernizeProject(cwd string) {
 			if reactMajorVer(reactVer) >= 18 {
 				indexJS := filepath.Join(cwd, "src", "index.js")
 				if src, err := os.ReadFile(indexJS); err == nil {
-					if updated, ok := upgradeToCreateRoot(string(src)); ok {
-						_ = os.WriteFile(indexJS, []byte(updated), 0o644)
-						changed = true
+					if _, ok := upgradeToCreateRoot(string(src)); ok {
+						if force {
+							if updated, ok2 := upgradeToCreateRoot(string(src)); ok2 {
+								_ = os.WriteFile(indexJS, []byte(updated), 0o644)
+								changed = true
+							}
+						} else {
+							recommendations = append(recommendations, "src/index.js uses legacy ReactDOM.render() — update to createRoot() for React 18+")
+						}
 					}
 				}
 			}
@@ -240,21 +249,29 @@ func modernizeProject(cwd string) {
 			}
 		}
 		if rewrite {
-			minimal := "import React from 'react';\nfunction App() { return <div className=\"App\"></div>; }\nexport default App;\n"
-			_ = os.WriteFile(appJS, []byte(minimal), 0o644)
-			for _, rel := range []string{"src/routes", "src/pages", "src/assets"} {
-				_ = os.RemoveAll(filepath.Join(cwd, filepath.FromSlash(rel)))
+			if force {
+				minimal := "import React from 'react';\nfunction App() { return <div className=\"App\"></div>; }\nexport default App;\n"
+				_ = os.WriteFile(appJS, []byte(minimal), 0o644)
+				for _, rel := range []string{"src/routes", "src/pages", "src/assets"} {
+					_ = os.RemoveAll(filepath.Join(cwd, filepath.FromSlash(rel)))
+				}
+				changed = true
+			} else {
+				recommendations = append(recommendations, "src/App.js imports uninstalled npm packages — install them or simplify imports")
 			}
-			changed = true
 		}
 	}
 
 	// ── 3. App.js: rewrite if it contains relative imports that don't exist ──
 	if src, err := os.ReadFile(appJS); err == nil {
 		if hasBrokenImports(cwd, string(src)) {
-			minimal := "import React from 'react';\nfunction App() { return <div className=\"App\"></div>; }\nexport default App;\n"
-			_ = os.WriteFile(appJS, []byte(minimal), 0o644)
-			changed = true
+			if force {
+				minimal := "import React from 'react';\nfunction App() { return <div className=\"App\"></div>; }\nexport default App;\n"
+				_ = os.WriteFile(appJS, []byte(minimal), 0o644)
+				changed = true
+			} else {
+				recommendations = append(recommendations, "src/App.js has broken relative imports — fix or remove the missing dependencies")
+			}
 		}
 	}
 
@@ -262,8 +279,12 @@ func modernizeProject(cwd string) {
 	eslintRC := filepath.Join(cwd, ".eslintrc.js")
 	if src, err := os.ReadFile(eslintRC); err == nil {
 		if hasUninstalledExtends(cwd, string(src)) {
-			_ = os.Remove(eslintRC)
-			changed = true
+			if force {
+				_ = os.Remove(eslintRC)
+				changed = true
+			} else {
+				recommendations = append(recommendations, ".eslintrc.js extends an uninstalled config — install it or remove the extends")
+			}
 		}
 	}
 
@@ -271,8 +292,19 @@ func modernizeProject(cwd string) {
 	for _, rel := range []string{"src/routes", "src/pages", "src/assets"} {
 		dir := filepath.Join(cwd, filepath.FromSlash(rel))
 		if empty, err := isDirEmpty(dir); err == nil && empty {
-			_ = os.Remove(dir)
-			changed = true
+			if force {
+				_ = os.Remove(dir)
+				changed = true
+			} else {
+				recommendations = append(recommendations, rel+" is an empty directory — consider removing it")
+			}
+		}
+	}
+
+	if len(recommendations) > 0 {
+		fmt.Println(display.BoldStyle.Render("Modernize recommendations (use --force to apply):"))
+		for _, r := range recommendations {
+			fmt.Printf("  • %s\n", r)
 		}
 	}
 

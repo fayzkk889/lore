@@ -60,6 +60,7 @@ func init() {
 	rootCmd.AddCommand(newConfigCmd())
 	rootCmd.AddCommand(newModelCmd())
 	rootCmd.AddCommand(newModelsCmd())
+	rootCmd.AddCommand(newContractCmd())
 	rootCmd.AddCommand(newInitCmd())
 	rootCmd.AddCommand(newExportLearningCmd())
 	rootCmd.AddCommand(newRollbackCmd())

@@ -154,12 +154,12 @@ func (r *Runner) Run(ctx context.Context, command string) (<-chan OutputLine, <-
 		close(outCh)
 	}()
 
-	// One reaper goroutine waits for both scanners + the process, then
-	// emits Result and closes both channels.
+	// One reaper goroutine waits for the process, lets pipe scanners drain,
+	// then emits Result and closes both channels.
 	go func() {
+		waitErr := cmd.Wait()
 		wg.Wait()
 		close(internalCh) // triggers broadcaster EOF
-		waitErr := cmd.Wait()
 
 		res := Result{Duration: time.Since(start)}
 		outputMu.Lock()

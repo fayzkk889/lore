@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -21,6 +22,7 @@ import (
 func newDoCmd() *cobra.Command {
 	var dir string
 	var permission string
+	var contractRef string
 
 	cmd := &cobra.Command{
 		Use:   "do \"<request>\"",
@@ -71,6 +73,20 @@ func newDoCmd() *cobra.Command {
 			if _, err := ensureLoreWiki(workDir); err != nil {
 				return fmt.Errorf("initializing .lore wiki: %w", err)
 			}
+			var activeContract *loreContract
+			if strings.TrimSpace(contractRef) != "" {
+				contract, err := loadContract(workDir, contractRef)
+				if err != nil {
+					return err
+				}
+				contract.Status = "running"
+				contract.UpdatedAt = time.Now()
+				if err := writeContract(workDir, contract); err != nil {
+					return err
+				}
+				activeContract = &contract
+				fmt.Println("contract: " + contract.ID)
+			}
 
 			provider, err := resolveEngineForDir(cfg, workDir)
 			if err != nil {
@@ -91,6 +107,9 @@ func newDoCmd() *cobra.Command {
 				RequireWork:  true, // headless runs are work requests; a workless stop gets one structural nudge
 				Permission:   perm,
 			}
+			if activeContract != nil {
+				ag.ExtraContext += "\n" + contractContext(*activeContract)
+			}
 
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 			defer stop()
@@ -100,6 +119,20 @@ func newDoCmd() *cobra.Command {
 			u := ag.Usage()
 			fmt.Printf("\n\nbilled tokens: %d in / %d out (cache: %d read, %d write)\n",
 				u.InputTokens, u.OutputTokens, u.CacheReadTokens, u.CacheWriteTokens)
+			if activeContract != nil {
+				activeContract.addProof(contractProof{
+					Time:         time.Now(),
+					Kind:         "agent-run",
+					Passed:       outcome.OK,
+					Detail:       outcome.Detail,
+					Engine:       provider.Name(),
+					InputTokens:  u.InputTokens,
+					OutputTokens: u.OutputTokens,
+				})
+				if err := writeContract(workDir, *activeContract); err != nil {
+					return err
+				}
+			}
 
 			if !outcome.OK {
 				fmt.Println(display.ErrorStyle.Render("RESULT: NOT VERIFIED"))
@@ -115,6 +148,7 @@ func newDoCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&dir, "dir", "", "project directory (default: current directory)")
 	cmd.Flags().StringVar(&permission, "permission", "", "permission mode: full-auto, read-only (ask/auto-safe require the TUI)")
+	cmd.Flags().StringVar(&contractRef, "contract", "", "contract id/prefix to attach proof to")
 	return cmd
 }
 

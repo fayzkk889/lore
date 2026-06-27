@@ -77,6 +77,7 @@ func ensureLoreWiki(cwd string) (bool, error) {
 		filepath.Join(loreDir, "bugs"),
 		filepath.Join(loreDir, "learnings"),
 		filepath.Join(loreDir, "snapshots"),
+		filepath.Join(loreDir, "contracts"),
 	}
 	for _, dir := range dirs {
 		if err := lorefs.MkdirPrivate(dir); err != nil {

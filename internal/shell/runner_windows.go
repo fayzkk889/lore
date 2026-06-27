@@ -37,4 +37,5 @@ func killGroup(cmd *exec.Cmd) {
 	pid := strconv.Itoa(cmd.Process.Pid)
 	kill := exec.Command("taskkill", "/F", "/T", "/PID", pid)
 	_ = kill.Run()
+	_ = cmd.Process.Kill()
 }

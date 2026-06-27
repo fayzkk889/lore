@@ -3,6 +3,7 @@ package snapshot
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -160,6 +161,24 @@ func TestSnapshotMetadataUsesPrivatePermissions(t *testing.T) {
 	}
 	if info.Mode().Perm() != 0o600 {
 		t.Fatalf("manifest permissions = %v, want 0600", info.Mode().Perm())
+	}
+}
+
+func TestSnapshotSkipsLargeProjectInsteadOfCopying(t *testing.T) {
+	dir := t.TempDir()
+	for i := 0; i <= maxSnapshotFiles; i++ {
+		mustWrite(t, filepath.Join(dir, "files", fmt.Sprintf("file-%04d.txt", i)), "x")
+	}
+
+	id, warn, err := CreateSnapshot(dir)
+	if err != nil {
+		t.Fatalf("CreateSnapshot error: %v", err)
+	}
+	if id != "" {
+		t.Fatalf("CreateSnapshot id = %q, want empty when project exceeds budget", id)
+	}
+	if !strings.Contains(warn, "snapshot skipped") {
+		t.Fatalf("CreateSnapshot warning = %q, want snapshot skipped warning", warn)
 	}
 }
 

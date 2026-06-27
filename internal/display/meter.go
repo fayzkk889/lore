@@ -34,8 +34,8 @@ func (m *TokenMeter) TotalSessionTokens() int {
 	return m.SessionInputTokens + m.SessionOutputTokens
 }
 
-// Display returns a single styled line summarising the latest and session usage.
-// Format: tokens: 4,201 | session: 12,847 (in 10,002 / out 2,845)
+// Display returns a single styled line summarising provider-reported usage.
+// Format: turn billed: 4,201 | session billed: 12,847 (in 10,002 / out 2,845)
 func (m *TokenMeter) Display() string {
 	dimWhite := lipgloss.NewStyle().Foreground(ColorLightGray)
 
@@ -46,10 +46,10 @@ func (m *TokenMeter) Display() string {
 	}
 
 	return fmt.Sprintf("%s %s %s %s %s %s",
-		dimWhite.Render("tokens:"),
+		dimWhite.Render("turn billed:"),
 		dimWhite.Render(tokStr),
 		dimWhite.Render("|"),
-		dimWhite.Render("session:"),
+		dimWhite.Render("session billed:"),
 		dimWhite.Render(FormatCommas(m.TotalSessionTokens())),
 		dimWhite.Render(fmt.Sprintf("(in %s / out %s)",
 			FormatCommas(m.SessionInputTokens), FormatCommas(m.SessionOutputTokens))),
@@ -61,7 +61,7 @@ func (m *TokenMeter) SessionSummary(d time.Duration) string {
 	mins := int(d.Minutes())
 	secs := int(d.Seconds()) % 60
 	return fmt.Sprintf(
-		"  Duration:  %dm %ds\n  Tokens:    %s  (in: %s  out: %s)",
+		"  Duration:       %dm %ds\n  Billed tokens:  %s  (in: %s  out: %s)",
 		mins, secs,
 		FormatCommas(m.TotalSessionTokens()),
 		FormatCommas(m.SessionInputTokens),

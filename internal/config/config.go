@@ -142,3 +142,14 @@ func SaveConfig(cfg *Config) error {
 
 	return nil
 }
+
+// SaveModel updates only the engine.model field in the existing config,
+// preserving all other fields (provider, api_key, base_url, display, safety, etc.).
+func SaveModel(model string) error {
+	cfg, err := LoadConfig()
+	if err != nil {
+		return err
+	}
+	cfg.Engine.Model = model
+	return SaveConfig(cfg)
+}

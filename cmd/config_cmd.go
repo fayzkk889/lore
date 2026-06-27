@@ -79,6 +79,44 @@ func newConfigCmd() *cobra.Command {
 		},
 	})
 
+	cmd.AddCommand(&cobra.Command{
+		Use:   "model [model-id]",
+		Short: "Show or change the active model without re-entering credentials",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			cfg, err := config.LoadConfig()
+			if err != nil {
+				return fmt.Errorf("loading config: %w", err)
+			}
+			if len(args) == 0 {
+				s, ok := resolveEngineSettings(cfg)
+				if !ok {
+					return fmt.Errorf("no provider configured — run `lore config set` first")
+				}
+				fmt.Println("model: " + emptyDash(s.model))
+				return nil
+			}
+			newModel := strings.TrimSpace(args[0])
+			if newModel == "" {
+				return fmt.Errorf("model id cannot be empty")
+			}
+			// Validate by attempting to build a provider with the new model.
+			s, ok := resolveEngineSettings(cfg)
+			if !ok {
+				return fmt.Errorf("no provider configured — run `lore config set` first")
+			}
+			s.model = newModel
+			if _, err := buildProvider(s); err != nil {
+				return fmt.Errorf("invalid model: %w", err)
+			}
+			if err := config.SaveModel(newModel); err != nil {
+				return fmt.Errorf("saving model: %w", err)
+			}
+			fmt.Println(display.DimStyle.Render("Model set to " + newModel + "."))
+			return nil
+		},
+	})
+
 	return cmd
 }
 

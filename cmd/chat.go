@@ -577,7 +577,7 @@ func (m chatModel) handleSlash(input string) (tea.Model, tea.Cmd) {
 		addInfo(helpText())
 
 	case "/tokens", "/cost":
-		addInfo(fmt.Sprintf("session tokens: %s (in %s / out %s)",
+		addInfo(fmt.Sprintf("session billed tokens: %s (in %s / out %s)\nprovider-reported input includes Lore's system prompt, tool schemas, safety/verification instructions, and loaded project context",
 			display.FormatCommas(m.meter.TotalSessionTokens()),
 			display.FormatCommas(m.meter.SessionInputTokens),
 			display.FormatCommas(m.meter.SessionOutputTokens)))
@@ -665,7 +665,43 @@ func (m chatModel) handleSlash(input string) (tea.Model, tea.Cmd) {
 		addInfo("permission mode set to " + string(mode))
 
 	case "/engine":
-		addInfo("engine: " + m.engineName)
+		addInfo("engine: " + m.engineName + " (use /model to switch)")
+
+	case "/model":
+		if m.state == stateRunning {
+			addInfo("cannot switch models while a task is running")
+			break
+		}
+		raw := strings.TrimSpace(strings.TrimPrefix(input, "/model"))
+		if raw == "" {
+			addInfo("model: " + m.engineName)
+			addInfo("usage: /model <model-id> — switch model without re-entering credentials")
+			break
+		}
+		newModel := raw
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			addInfo("failed to load config: " + err.Error())
+			break
+		}
+		s, ok := resolveEngineSettings(cfg)
+		if !ok {
+			addInfo("no provider configured — run `lore config set` first")
+			break
+		}
+		s.model = newModel
+		newProvider, err := buildProvider(s)
+		if err != nil {
+			addInfo("invalid model: " + err.Error())
+			break
+		}
+		if err := config.SaveModel(newModel); err != nil {
+			addInfo("failed to save model: " + err.Error())
+			break
+		}
+		m.ag.Provider = newProvider
+		m.engineName = newProvider.Name()
+		addInfo("switched to " + m.engineName)
 
 	case "/sh":
 		raw := strings.TrimSpace(strings.TrimPrefix(input, "/sh"))
@@ -705,6 +741,7 @@ commands:
   /approve         toggle file-write and shell-command approval mode
   /permissions     show/set full-auto, auto-safe, ask, or read-only
   /engine          show the active AI engine
+  /model <id>      switch model (credentials preserved)
   /sh <command>    run a shell command yourself
   /exit            quit
 
@@ -1001,7 +1038,7 @@ func projectStatus(m chatModel) string {
   state: %s
   engine: %s
   permission: %s
-  session tokens: %s
+  session billed tokens: %s
   wiki docs: %d
   memory notes: %d
   verification ledgers: %d

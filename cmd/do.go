@@ -47,11 +47,6 @@ func newDoCmd() *cobra.Command {
 				fmt.Printf("permission mode %q needs interactive approvals; using full-auto for this headless run (override with --permission read-only)\n", perm)
 				perm = agent.PermissionFullAuto
 			}
-			provider, err := resolveEngine(cfg)
-			if err != nil {
-				return err
-			}
-
 			workDir := dir
 			if workDir == "" {
 				workDir, err = os.Getwd()
@@ -77,6 +72,11 @@ func newDoCmd() *cobra.Command {
 				return fmt.Errorf("initializing .lore wiki: %w", err)
 			}
 
+			provider, err := resolveEngine(cfg)
+			if err != nil {
+				return err
+			}
+
 			fmt.Printf("lore %s — engine: %s\nproject: %s\n\n", Version, provider.Name(), workDir)
 			fmt.Println("probing environment...")
 			env := agent.ProbeEnv()
@@ -98,7 +98,7 @@ func newDoCmd() *cobra.Command {
 			outcome := ag.Run(ctx, args[0])
 
 			u := ag.Usage()
-			fmt.Printf("\n\ntokens: %d in / %d out (cache: %d read, %d write)\n",
+			fmt.Printf("\n\nbilled tokens: %d in / %d out (cache: %d read, %d write)\n",
 				u.InputTokens, u.OutputTokens, u.CacheReadTokens, u.CacheWriteTokens)
 
 			if !outcome.OK {

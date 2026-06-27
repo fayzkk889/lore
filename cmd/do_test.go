@@ -8,6 +8,7 @@ import (
 )
 
 func TestDoRejectsNonexistentDirectory(t *testing.T) {
+	withoutEngineConfig(t)
 	cmd := newDoCmd()
 	// Point --dir at a path that does not exist.
 	missing := filepath.Join(t.TempDir(), "does-not-exist")
@@ -22,6 +23,7 @@ func TestDoRejectsNonexistentDirectory(t *testing.T) {
 }
 
 func TestDoRejectsFilePath(t *testing.T) {
+	withoutEngineConfig(t)
 	f := filepath.Join(t.TempDir(), "afile.txt")
 	if err := os.WriteFile(f, []byte("hi"), 0o644); err != nil {
 		t.Fatal(err)
@@ -38,18 +40,21 @@ func TestDoRejectsFilePath(t *testing.T) {
 }
 
 func TestDoAcceptsExistingDirectory(t *testing.T) {
+	withoutEngineConfig(t)
 	dir := t.TempDir()
 	cmd := newDoCmd()
 	cmd.SetArgs([]string{"--dir", dir, "hello"})
 	// This will fail later (no engine configured), but it should pass
-	// the directory validation step. Check that the error is NOT about
-	// the directory.
+	// directory validation and auto-create .lore first.
 	err := cmd.Execute()
 	if err == nil {
 		return // unexpectedly passed (unlikely without config); that's fine
 	}
 	if strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "not a directory") {
 		t.Fatalf("existing directory rejected: %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(dir, ".lore")); statErr != nil {
+		t.Fatalf(".lore was not created before provider resolution: %v", statErr)
 	}
 }
 
@@ -66,5 +71,24 @@ func TestDoCreatesLoreDirInsideExistingProject(t *testing.T) {
 	}
 	if !info.IsDir() {
 		t.Fatal(".lore is not a directory")
+	}
+}
+
+func withoutEngineConfig(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+	t.Setenv("USERPROFILE", dir)
+	for _, name := range []string{
+		"LORE_PROVIDER",
+		"LORE_MODEL",
+		"LORE_BASE_URL",
+		"LORE_API_KEY",
+		"ANTHROPIC_API_KEY",
+		"OPENAI_API_KEY",
+		"OPENROUTER_API_KEY",
+		"DEEPSEEK_API_KEY",
+	} {
+		t.Setenv(name, "")
 	}
 }

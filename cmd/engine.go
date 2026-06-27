@@ -138,6 +138,22 @@ func resolveEngineSettings(cfg *config.Config) (engineSettings, bool) {
 	return s, true
 }
 
+// resolveEngineSettingsForDir applies the project-level model override from
+// .lore/config.json when the model was not set explicitly by env or flag.
+func resolveEngineSettingsForDir(cfg *config.Config, cwd string) (engineSettings, bool) {
+	s, ok := resolveEngineSettings(cfg)
+	if !ok {
+		return s, false
+	}
+	if cwd == "" || flagModel != "" || os.Getenv("LORE_MODEL") != "" {
+		return s, true
+	}
+	if projectCfg := readLoreProjectConfig(cwd); strings.TrimSpace(projectCfg.Model) != "" {
+		s.model = strings.TrimSpace(projectCfg.Model)
+	}
+	return s, true
+}
+
 // resolveAPIKey applies the key precedence: flag > provider env var >
 // LORE_API_KEY > config file.
 func resolveAPIKey(cfg *config.Config, info providerInfo) (key, source string) {
@@ -196,7 +212,13 @@ func buildProvider(s engineSettings) (engine.Provider, error) {
 // resolveEngine returns the configured Provider, running first-run setup if
 // nothing is configured and stdin is interactive.
 func resolveEngine(cfg *config.Config) (engine.Provider, error) {
-	s, ok := resolveEngineSettings(cfg)
+	return resolveEngineForDir(cfg, "")
+}
+
+// resolveEngineForDir returns the configured Provider, including any
+// per-project model override for cwd.
+func resolveEngineForDir(cfg *config.Config, cwd string) (engine.Provider, error) {
+	s, ok := resolveEngineSettingsForDir(cfg, cwd)
 	if !ok {
 		if !stdinIsTerminal() {
 			return nil, fmt.Errorf("no AI provider configured — set an API key env var (e.g. OPENAI_API_KEY, OPENROUTER_API_KEY, ANTHROPIC_API_KEY) or run `lore config set`")
@@ -204,7 +226,7 @@ func resolveEngine(cfg *config.Config) (engine.Provider, error) {
 		if err := runFirstRunSetup(cfg); err != nil {
 			return nil, err
 		}
-		s, ok = resolveEngineSettings(cfg)
+		s, ok = resolveEngineSettingsForDir(cfg, cwd)
 		if !ok {
 			return nil, fmt.Errorf("setup did not produce a usable provider configuration")
 		}

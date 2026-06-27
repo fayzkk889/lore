@@ -165,6 +165,7 @@ type loreProjectConfig struct {
 	BaselineCommand string `json:"baseline_command,omitempty"`
 	OnboardingShown bool   `json:"onboarding_shown,omitempty"`
 	AutoShell       *bool  `json:"auto_shell,omitempty"`
+	Model           string `json:"model,omitempty"`
 }
 
 // readLoreProjectConfig loads .lore/config.json from cwd.

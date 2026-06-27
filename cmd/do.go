@@ -72,7 +72,7 @@ func newDoCmd() *cobra.Command {
 				return fmt.Errorf("initializing .lore wiki: %w", err)
 			}
 
-			provider, err := resolveEngine(cfg)
+			provider, err := resolveEngineForDir(cfg, workDir)
 			if err != nil {
 				return err
 			}

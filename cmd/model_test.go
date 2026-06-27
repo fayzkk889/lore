@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,6 +35,30 @@ func writeTestConfig(t *testing.T, provider, apiKey, model string) {
 	if err := config.SaveConfig(cfg); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func mustLoadConfig(t *testing.T) *config.Config {
+	t.Helper()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cfg
+}
+
+func resetEngineFlags(t *testing.T) {
+	t.Helper()
+	oldFlagProvider := flagProvider
+	oldFlagModel := flagModel
+	oldFlagBaseURL := flagBaseURL
+	oldFlagAPIKey := flagAPIKey
+	flagProvider, flagModel, flagBaseURL, flagAPIKey = "", "", "", ""
+	t.Cleanup(func() {
+		flagProvider = oldFlagProvider
+		flagModel = oldFlagModel
+		flagBaseURL = oldFlagBaseURL
+		flagAPIKey = oldFlagAPIKey
+	})
 }
 
 func TestSlashModelShowsCurrent(t *testing.T) {
@@ -80,7 +106,7 @@ func TestSlashModelSwitchesProviderAndPreservesHistory(t *testing.T) {
 	m := chatModelForTest(t)
 	// Set up the agent with a real provider.
 	cfg, _ := config.LoadConfig()
-	prov, err := resolveEngine(cfg)
+	prov, err := resolveEngineForDir(cfg, m.projectDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,13 +133,19 @@ func TestSlashModelSwitchesProviderAndPreservesHistory(t *testing.T) {
 		t.Fatalf("engineName = %q, want it to contain qwen3:4b", got.engineName)
 	}
 
-	// Persisted config must have the new model.
+	// Project config must have the new model.
+	projectCfg := readLoreProjectConfig(m.projectDir)
+	if projectCfg.Model != "qwen3:4b" {
+		t.Fatalf("project model = %q, want qwen3:4b", projectCfg.Model)
+	}
+
+	// Global config is the default and must not be overwritten by /model.
 	reloaded, err := config.LoadConfig()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if reloaded.Engine.Model != "qwen3:4b" {
-		t.Fatalf("persisted model = %q, want qwen3:4b", reloaded.Engine.Model)
+	if reloaded.Engine.Model != "llama3" {
+		t.Fatalf("global model = %q, want llama3", reloaded.Engine.Model)
 	}
 
 	// Credentials must be untouched.
@@ -142,7 +174,7 @@ func TestSlashModelDoesNotResetCredentials(t *testing.T) {
 
 	m := chatModelForTest(t)
 	cfg, _ := config.LoadConfig()
-	prov, _ := resolveEngine(cfg)
+	prov, _ := resolveEngineForDir(cfg, m.projectDir)
 	m.ag.Provider = prov
 	m.engineName = prov.Name()
 
@@ -206,6 +238,74 @@ func TestConfigModelCLIShowsCurrent(t *testing.T) {
 	cmd.SetArgs([]string{"model"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("config model show failed: %v", err)
+	}
+}
+
+func TestProjectModelOverridesGlobalDefault(t *testing.T) {
+	testWithConfigDir(t)
+	writeTestConfig(t, "ollama", "", "llama3")
+	resetEngineFlags(t)
+
+	projectDir := t.TempDir()
+	if err := setProjectModel(projectDir, mustLoadConfig(t), "qwen3:4b"); err != nil {
+		t.Fatal(err)
+	}
+
+	s, ok := resolveEngineSettingsForDir(mustLoadConfig(t), projectDir)
+	if !ok {
+		t.Fatal("settings not resolved")
+	}
+	if s.model != "qwen3:4b" {
+		t.Fatalf("model = %q, want qwen3:4b", s.model)
+	}
+
+	t.Setenv("LORE_MODEL", "env-model")
+	s, ok = resolveEngineSettingsForDir(mustLoadConfig(t), projectDir)
+	if !ok {
+		t.Fatal("settings not resolved")
+	}
+	if s.model != "env-model" {
+		t.Fatalf("env override model = %q, want env-model", s.model)
+	}
+}
+
+func TestSlashSuggestionsCompleteCommand(t *testing.T) {
+	m := chatModelForTest(t)
+	m.ta.SetValue("/mo")
+	m.refreshSlashSuggestions()
+	if len(m.suggestions) == 0 {
+		t.Fatal("expected suggestions")
+	}
+	m.applySlashSuggestion()
+	if got := m.ta.Value(); !strings.HasPrefix(got, "/model") && !strings.HasPrefix(got, "/models") {
+		t.Fatalf("completion = %q, want model command", got)
+	}
+}
+
+func TestFetchProviderModelsUsesModelsEndpoint(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/models" {
+			t.Fatalf("path = %q, want /v1/models", r.URL.Path)
+		}
+		if got := r.Header.Get("Authorization"); got != "Bearer test-key" {
+			t.Fatalf("authorization = %q", got)
+		}
+		_, _ = w.Write([]byte(`{"data":[{"id":"alpha/model","name":"Alpha"},{"id":"beta/model"}]}`))
+	}))
+	defer srv.Close()
+
+	s := engineSettings{
+		provider: providers["openrouter"],
+		baseURL:  srv.URL + "/v1",
+		apiKey:   "test-key",
+		model:    "alpha/model",
+	}
+	models, err := fetchProviderModels(t.Context(), s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(models) != 2 || models[0].ID != "alpha/model" || models[1].ID != "beta/model" {
+		t.Fatalf("models = %#v", models)
 	}
 }
 

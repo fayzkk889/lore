@@ -122,7 +122,16 @@ type chatModel struct {
 	projectDir  string
 	sessionTime time.Time
 
+	suggestions  []slashSuggestion
+	suggestIndex int
+
 	quitting bool
+}
+
+type slashSuggestion struct {
+	Command string
+	Usage   string
+	Desc    string
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -143,7 +152,7 @@ func runChat(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("loading config: %w", err)
 	}
 
-	provider, err := resolveEngine(cfg)
+	provider, err := resolveEngineForDir(cfg, cwd)
 	if err != nil {
 		return err
 	}
@@ -373,10 +382,35 @@ func (m chatModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case tea.KeyEsc:
+		if len(m.suggestions) > 0 {
+			m.clearSlashSuggestions()
+			return m, nil
+		}
 		if m.state == stateRunning && m.cancelRun != nil {
 			m.cancelRun()
 		}
 		return m, nil
+
+	case tea.KeyTab:
+		if len(m.suggestions) > 0 {
+			m.applySlashSuggestion()
+			return m, nil
+		}
+
+	case tea.KeyUp:
+		if len(m.suggestions) > 0 {
+			m.suggestIndex--
+			if m.suggestIndex < 0 {
+				m.suggestIndex = len(m.suggestions) - 1
+			}
+			return m, nil
+		}
+
+	case tea.KeyDown:
+		if len(m.suggestions) > 0 {
+			m.suggestIndex = (m.suggestIndex + 1) % len(m.suggestions)
+			return m, nil
+		}
 
 	case tea.KeyCtrlL:
 		m.ag.Reset()
@@ -387,6 +421,7 @@ func (m chatModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			text = strings.ReplaceAll(text, "\r\n", "\n")
 			m.ta.InsertString(text)
 			m.syncTaHeight()
+			m.refreshSlashSuggestions()
 		}
 		return m, nil
 
@@ -397,6 +432,11 @@ func (m chatModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if msg.Paste || msg.Alt {
 			m.ta.InsertString("\n")
 			m.syncTaHeight()
+			m.refreshSlashSuggestions()
+			return m, nil
+		}
+		if len(m.suggestions) > 0 && shouldAcceptSlashSuggestion(m.ta.Value()) {
+			m.applySlashSuggestion()
 			return m, nil
 		}
 		return m.submit()
@@ -405,6 +445,7 @@ func (m chatModel) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.ta, cmd = m.ta.Update(msg)
 	m.syncTaHeight()
+	m.refreshSlashSuggestions()
 	return m, cmd
 }
 
@@ -426,6 +467,7 @@ func (m chatModel) submit() (tea.Model, tea.Cmd) {
 	if strings.HasPrefix(input, "/") {
 		m.ta.Reset()
 		m.ta.SetHeight(1)
+		m.clearSlashSuggestions()
 		return m.handleSlash(input)
 	}
 
@@ -437,6 +479,7 @@ func (m chatModel) submit() (tea.Model, tea.Cmd) {
 	// Safe to submit: clear input box
 	m.ta.Reset()
 	m.ta.SetHeight(1)
+	m.clearSlashSuggestions()
 
 	var cmds []tea.Cmd
 	cmds = append(cmds, tea.Printf("\n%s%s\n", display.PromptStyle.Render("❯ "), display.BoldStyle.Render(input)))
@@ -675,7 +718,9 @@ func (m chatModel) handleSlash(input string) (tea.Model, tea.Cmd) {
 		raw := strings.TrimSpace(strings.TrimPrefix(input, "/model"))
 		if raw == "" {
 			addInfo("model: " + m.engineName)
-			addInfo("usage: /model <model-id> — switch model without re-entering credentials")
+			addInfo("project model: " + emptyDash(readLoreProjectConfig(m.projectDir).Model))
+			addInfo("suggestions:\n" + formatInlineModelSuggestions(m.projectDir, ""))
+			addInfo("usage: /model <model-id> - switch this project without re-entering credentials")
 			break
 		}
 		newModel := raw
@@ -684,24 +729,27 @@ func (m chatModel) handleSlash(input string) (tea.Model, tea.Cmd) {
 			addInfo("failed to load config: " + err.Error())
 			break
 		}
-		s, ok := resolveEngineSettings(cfg)
+		if err := setProjectModel(m.projectDir, cfg, newModel); err != nil {
+			addInfo("failed to save project model: " + err.Error())
+			break
+		}
+		s, ok := resolveEngineSettingsForDir(cfg, m.projectDir)
 		if !ok {
 			addInfo("no provider configured — run `lore config set` first")
 			break
 		}
-		s.model = newModel
 		newProvider, err := buildProvider(s)
 		if err != nil {
 			addInfo("invalid model: " + err.Error())
 			break
 		}
-		if err := config.SaveModel(newModel); err != nil {
-			addInfo("failed to save model: " + err.Error())
-			break
-		}
 		m.ag.Provider = newProvider
 		m.engineName = newProvider.Name()
-		addInfo("switched to " + m.engineName)
+		addInfo("switched project to " + m.engineName)
+
+	case "/models":
+		raw := strings.TrimSpace(strings.TrimPrefix(input, "/models"))
+		addInfo(formatInlineModelSuggestions(m.projectDir, raw))
 
 	case "/sh":
 		raw := strings.TrimSpace(strings.TrimPrefix(input, "/sh"))
@@ -741,17 +789,173 @@ commands:
   /approve         toggle file-write and shell-command approval mode
   /permissions     show/set full-auto, auto-safe, ask, or read-only
   /engine          show the active AI engine
-  /model <id>      switch model (credentials preserved)
+  /model <id>      switch this project's model
+  /models [query]  list suggested models
   /sh <command>    run a shell command yourself
   /exit            quit
 
 keys:
   Enter            send
+  Tab              complete slash command
   Alt+Enter        insert a newline
   Ctrl+D           send
   Ctrl+V           paste
   Esc              cancel the running task
   Ctrl+C           cancel task / quit`)
+}
+
+var slashCommandCatalog = []slashSuggestion{
+	{Command: "/help", Usage: "/help", Desc: "show commands and keys"},
+	{Command: "/clear", Usage: "/clear", Desc: "clear conversation memory"},
+	{Command: "/tokens", Usage: "/tokens", Desc: "show billed token usage"},
+	{Command: "/status", Usage: "/status", Desc: "show project and run state"},
+	{Command: "/copy", Usage: "/copy", Desc: "copy last response"},
+	{Command: "/memory", Usage: "/memory", Desc: "show project memory"},
+	{Command: "/wiki", Usage: "/wiki", Desc: "list wiki documents"},
+	{Command: "/recall", Usage: "/recall <query>", Desc: "search memory and wiki"},
+	{Command: "/remember", Usage: "/remember <note>", Desc: "save project memory"},
+	{Command: "/history", Usage: "/history", Desc: "list undo snapshots"},
+	{Command: "/rollback", Usage: "/rollback <n>", Desc: "restore a snapshot"},
+	{Command: "/runs", Usage: "/runs", Desc: "list verification ledgers"},
+	{Command: "/audit", Usage: "/audit", Desc: "show tool audit"},
+	{Command: "/approve", Usage: "/approve", Desc: "toggle approval mode"},
+	{Command: "/permissions", Usage: "/permissions <mode>", Desc: "set permission mode"},
+	{Command: "/engine", Usage: "/engine", Desc: "show active engine"},
+	{Command: "/model", Usage: "/model <model-id>", Desc: "switch this project's model"},
+	{Command: "/models", Usage: "/models [query]", Desc: "list suggested models"},
+	{Command: "/sh", Usage: "/sh <command>", Desc: "run a shell command"},
+	{Command: "/exit", Usage: "/exit", Desc: "quit Lore"},
+}
+
+func slashSuggestions(input string) []slashSuggestion {
+	input = strings.TrimSpace(input)
+	if !strings.HasPrefix(input, "/") || strings.Contains(input, "\n") {
+		return nil
+	}
+	prefix := strings.ToLower(input)
+	if i := strings.IndexAny(prefix, " \t"); i >= 0 {
+		prefix = prefix[:i]
+	}
+	var out []slashSuggestion
+	var fuzzy []slashSuggestion
+	term := strings.TrimPrefix(prefix, "/")
+	for _, item := range slashCommandCatalog {
+		if strings.HasPrefix(strings.ToLower(item.Command), prefix) {
+			out = append(out, item)
+			continue
+		}
+		if term != "" && strings.Contains(strings.ToLower(item.Usage+" "+item.Desc), term) {
+			fuzzy = append(fuzzy, item)
+		}
+	}
+	out = append(out, fuzzy...)
+	if len(out) > 8 {
+		out = out[:8]
+	}
+	return out
+}
+
+func (m *chatModel) refreshSlashSuggestions() {
+	prev := ""
+	if len(m.suggestions) > 0 && m.suggestIndex >= 0 && m.suggestIndex < len(m.suggestions) {
+		prev = m.suggestions[m.suggestIndex].Command
+	}
+	m.suggestions = slashSuggestions(m.ta.Value())
+	m.suggestIndex = 0
+	if prev != "" {
+		for i, item := range m.suggestions {
+			if item.Command == prev {
+				m.suggestIndex = i
+				break
+			}
+		}
+	}
+}
+
+func (m *chatModel) clearSlashSuggestions() {
+	m.suggestions = nil
+	m.suggestIndex = 0
+}
+
+func (m *chatModel) applySlashSuggestion() {
+	if len(m.suggestions) == 0 {
+		return
+	}
+	if m.suggestIndex < 0 || m.suggestIndex >= len(m.suggestions) {
+		m.suggestIndex = 0
+	}
+	s := m.suggestions[m.suggestIndex]
+	value := s.Command
+	if strings.Contains(s.Usage, " ") {
+		value += " "
+	}
+	m.ta.SetValue(value)
+	m.syncTaHeight()
+	m.refreshSlashSuggestions()
+}
+
+func shouldAcceptSlashSuggestion(input string) bool {
+	input = strings.TrimSpace(input)
+	if input == "" || strings.Contains(input, " ") || strings.Contains(input, "\t") {
+		return false
+	}
+	for _, item := range slashCommandCatalog {
+		if item.Command == input {
+			return false
+		}
+	}
+	return strings.HasPrefix(input, "/")
+}
+
+func renderSlashSuggestions(items []slashSuggestion, selected int, width int) string {
+	if len(items) == 0 {
+		return ""
+	}
+	var lines []string
+	for i, item := range items {
+		prefix := "  "
+		if i == selected {
+			prefix = "> "
+		}
+		line := fmt.Sprintf("%s%-20s %s", prefix, item.Usage, item.Desc)
+		lines = append(lines, display.DimStyle.Render(trimTo(line, max(24, width-4))))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func formatInlineModelSuggestions(cwd, query string) string {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return "failed to load config: " + err.Error()
+	}
+	s, ok := resolveEngineSettingsForDir(cfg, cwd)
+	if !ok {
+		return "no provider configured - run `lore config set` first"
+	}
+	models, _ := availableModels(context.Background(), s, false)
+	models = filterModels(models, query)
+	if len(models) > 8 {
+		models = models[:8]
+	}
+	if len(models) == 0 {
+		return "no suggested models matched"
+	}
+	var sb strings.Builder
+	for _, model := range models {
+		mark := " "
+		if model.ID == s.model {
+			mark = "*"
+		} else if model.Recommended {
+			mark = "+"
+		}
+		fmt.Fprintf(&sb, "%s %s", mark, model.ID)
+		if model.Name != "" {
+			fmt.Fprintf(&sb, " - %s", model.Name)
+		}
+		sb.WriteByte('\n')
+	}
+	sb.WriteString("Use /model <id> to switch this project, or `lore models` for the live catalog.")
+	return strings.TrimRight(sb.String(), "\n")
 }
 
 func runUserShell(dir, command string) tea.Cmd {
@@ -825,6 +1029,7 @@ func (m chatModel) View() string {
 	}
 
 	status := m.statusLine()
+	suggestions := renderSlashSuggestions(m.suggestions, m.suggestIndex, m.w)
 
 	inputStyle := display.InputBoxStyle
 	if m.state == stateRunning {
@@ -834,7 +1039,11 @@ func (m chatModel) View() string {
 
 	meter := " " + m.meter.Display()
 
-	b.WriteString("\n\n" + status + "\n" + input + "\n" + meter)
+	b.WriteString("\n\n")
+	if suggestions != "" {
+		b.WriteString(suggestions + "\n")
+	}
+	b.WriteString(status + "\n" + input + "\n" + meter)
 	return b.String()
 }
 

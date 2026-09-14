@@ -1,0 +1,41 @@
+Lore Free Binary License
+Version 1.0, September 2026
+
+Copyright (c) 2026 Faizan Ahamad Khan. All rights reserved.
+
+1. Permission
+
+You may install and use an official, unmodified Lore executable free of charge
+for personal use and for internal use within a business or organization.
+
+2. Restrictions
+
+This license does not grant access to Lore's source code. Except where
+applicable law does not allow the restriction, you may not modify, reverse
+engineer, decompile, disassemble, redistribute, sublicense, sell, rent, or host
+Lore for third parties without prior written permission from the copyright
+holder. You may make reasonable backup copies for your own use.
+
+3. Ownership
+
+Lore and its non-third-party components remain the exclusive property of the
+copyright holder. No trademark rights are granted.
+
+4. Third-party software
+
+Lore includes third-party components governed by their own licenses. Those
+licenses and notices are provided with official distributions and are not
+limited by this license.
+
+5. No warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. TO THE MAXIMUM EXTENT ALLOWED
+BY LAW, THE COPYRIGHT HOLDER IS NOT LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
+
+6. Earlier open-source versions
+
+Copies of Lore previously distributed under the MIT License remain governed by
+that license. This license applies only to versions distributed with this file.

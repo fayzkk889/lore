@@ -1,0 +1,4 @@
+dist/
+*.zip
+*.tar.gz
+checksums.txt

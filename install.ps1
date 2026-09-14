@@ -1,5 +1,5 @@
 param(
-    [string]$Version = $(if ($env:LORE_VERSION) { $env:LORE_VERSION } else { "0.10.0-alpha.2" }),
+    [string]$Version = $(if ($env:LORE_VERSION) { $env:LORE_VERSION } else { "0.10.0-alpha.3" }),
     [string]$InstallDir = $(if ($env:LORE_INSTALL_DIR) { $env:LORE_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA "lore" }),
     [switch]$NoPath
 )
@@ -22,36 +22,44 @@ $TempDir = Join-Path $env:TEMP ("lore-install-" + [guid]::NewGuid().ToString("N"
 
 Write-Host "Downloading Lore $Version for Windows/$Arch..." -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $TempDir | Out-Null
-Invoke-WebRequest -Uri $Url -OutFile (Join-Path $TempDir $Filename)
-Invoke-WebRequest -Uri $ChecksumsUrl -OutFile (Join-Path $TempDir "checksums.txt")
+try {
+    Invoke-WebRequest -Uri $Url -OutFile (Join-Path $TempDir $Filename)
+    Invoke-WebRequest -Uri $ChecksumsUrl -OutFile (Join-Path $TempDir "checksums.txt")
 
-Write-Host "Verifying checksum..." -ForegroundColor Cyan
-$ExpectedLine = Get-Content (Join-Path $TempDir "checksums.txt") | Where-Object { $_ -match "\s$([regex]::Escape($Filename))$" } | Select-Object -First 1
-if (-not $ExpectedLine) {
-    Write-Error "Checksum for $Filename not found"; exit 1
+    Write-Host "Verifying checksum..." -ForegroundColor Cyan
+    $ExpectedLine = Get-Content (Join-Path $TempDir "checksums.txt") | Where-Object { $_ -match "\s$([regex]::Escape($Filename))$" } | Select-Object -First 1
+    if (-not $ExpectedLine) {
+        throw "Checksum for $Filename not found"
+    }
+    $Expected = ($ExpectedLine -split "\s+")[0].ToLowerInvariant()
+    $Actual = (Get-FileHash -Algorithm SHA256 (Join-Path $TempDir $Filename)).Hash.ToLowerInvariant()
+    if ($Actual -ne $Expected) {
+        throw "Checksum verification failed"
+    }
+
+    Write-Host "Extracting..." -ForegroundColor Cyan
+    Expand-Archive -Path (Join-Path $TempDir $Filename) -DestinationPath $TempDir -Force
+
+    Write-Host "Installing to $InstallDir..." -ForegroundColor Cyan
+    New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+    Copy-Item (Join-Path $TempDir "lore.exe") -Destination $InstallDir -Force
+
+    # Add one exact path entry. Substring matching breaks for folders such as
+    # C:\Tools and C:\Tools-Old.
+    $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $PathParts = @($UserPath -split ";" | Where-Object { $_ })
+    $AlreadyOnPath = $PathParts | Where-Object {
+        [string]::Equals($_.TrimEnd("\\"), $InstallDir.TrimEnd("\\"), [StringComparison]::OrdinalIgnoreCase)
+    }
+    if (-not $NoPath -and -not $AlreadyOnPath) {
+        [Environment]::SetEnvironmentVariable("Path", (@($PathParts) + $InstallDir -join ";"), "User")
+        Write-Host "Added $InstallDir to your PATH." -ForegroundColor Green
+    }
+} finally {
+    if (Test-Path -LiteralPath $TempDir) {
+        Remove-Item -LiteralPath $TempDir -Recurse -Force
+    }
 }
-$Expected = ($ExpectedLine -split "\s+")[0].ToLowerInvariant()
-$Actual = (Get-FileHash -Algorithm SHA256 (Join-Path $TempDir $Filename)).Hash.ToLowerInvariant()
-if ($Actual -ne $Expected) {
-    Write-Error "Checksum verification failed"; exit 1
-}
-
-Write-Host "Extracting..." -ForegroundColor Cyan
-Expand-Archive -Path (Join-Path $TempDir $Filename) -DestinationPath $TempDir -Force
-
-Write-Host "Installing to $InstallDir..." -ForegroundColor Cyan
-New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-Copy-Item (Join-Path $TempDir "lore.exe") -Destination $InstallDir -Force
-
-# Add to PATH if not already there
-$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if (-not $NoPath -and $UserPath -notlike "*$InstallDir*") {
-    [Environment]::SetEnvironmentVariable("Path", "$UserPath;$InstallDir", "User")
-    Write-Host "Added $InstallDir to your PATH." -ForegroundColor Green
-}
-
-# Cleanup
-Remove-Item -Recurse -Force $TempDir
 
 Write-Host ""
 Write-Host "Lore $Version installed successfully!" -ForegroundColor Green

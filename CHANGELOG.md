@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.10.0-alpha.3
+
+- Prevents the Windows uninstaller from deleting unrelated files in a custom
+  install directory.
+- Cleans Windows installer temporary files after failed downloads.
+- Makes Unix uninstall resilient to MCP disconnect failures and adds an
+  explicit `--skip-disconnect` option.
+- Adds configurable data directories for safe, testable purge behavior.
+- Documents ZIP and text imports accurately in CLI help.
+
 ## v0.10.0-alpha.2
 
 - Adds local cross-client memory through MCP.

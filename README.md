@@ -90,9 +90,10 @@ lore disconnect --all
 ```
 
 Windows users can then run `uninstall.ps1`; macOS and Linux users can run
-`sh uninstall.sh`. Local memory is retained by default so reinstalling does not
-lose it. Pass `-PurgeData` on Windows or `--purge-data` on Unix only when the
-archive should also be permanently removed.
+`sh uninstall.sh`. The uninstallers remove only Lore's binary and leave other
+files in a custom install directory untouched. Local memory is retained by
+default so reinstalling does not lose it. Pass `-PurgeData` on Windows or
+`--purge-data` on Unix only when the archive should also be permanently removed.
 
 ## Feedback and security
 

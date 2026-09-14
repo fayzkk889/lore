@@ -3,6 +3,7 @@ set -e
 
 VERSION="${LORE_VERSION:-0.10.0-alpha.2}"
 REPO="fayzkk889/lore"
+INSTALL_DIR="${LORE_INSTALL_DIR:-/usr/local/bin}"
 INSTALL_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/lore-install.XXXXXX")
 trap 'rm -rf "$INSTALL_TMP_DIR"' EXIT
 
@@ -46,10 +47,15 @@ fi
 echo "Extracting..."
 tar -xzf "${INSTALL_TMP_DIR}/${FILENAME}" -C "$INSTALL_TMP_DIR"
 
-echo "Installing to /usr/local/bin..."
-sudo install -m 0755 "${INSTALL_TMP_DIR}/lore" /usr/local/bin/lore
+echo "Installing to ${INSTALL_DIR}..."
+if [ "$INSTALL_DIR" = "/usr/local/bin" ]; then
+    sudo install -m 0755 "${INSTALL_TMP_DIR}/lore" "${INSTALL_DIR}/lore"
+else
+    mkdir -p "$INSTALL_DIR"
+    install -m 0755 "${INSTALL_TMP_DIR}/lore" "${INSTALL_DIR}/lore"
+fi
 
 echo ""
 echo "Lore ${VERSION} installed successfully!"
-echo "Connect memory with: lore connect"
+echo "Connect memory with: ${INSTALL_DIR}/lore connect"
 echo "No API key is needed for memory. Lore's original coding agent is configured separately."

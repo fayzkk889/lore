@@ -1,5 +1,7 @@
 param(
-    [string]$Version = $(if ($env:LORE_VERSION) { $env:LORE_VERSION } else { "0.10.0-alpha.2" })
+    [string]$Version = $(if ($env:LORE_VERSION) { $env:LORE_VERSION } else { "0.10.0-alpha.2" }),
+    [string]$InstallDir = $(if ($env:LORE_INSTALL_DIR) { $env:LORE_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA "lore" }),
+    [switch]$NoPath
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,7 +19,6 @@ $Filename = "lore_${Version}_windows_${Arch}.zip"
 $Url = "https://github.com/$Repo/releases/download/v$Version/$Filename"
 $ChecksumsUrl = "https://github.com/$Repo/releases/download/v$Version/checksums.txt"
 $TempDir = Join-Path $env:TEMP ("lore-install-" + [guid]::NewGuid().ToString("N"))
-$InstallDir = Join-Path $env:LOCALAPPDATA "lore"
 
 Write-Host "Downloading Lore $Version for Windows/$Arch..." -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $TempDir | Out-Null
@@ -44,7 +45,7 @@ Copy-Item (Join-Path $TempDir "lore.exe") -Destination $InstallDir -Force
 
 # Add to PATH if not already there
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($UserPath -notlike "*$InstallDir*") {
+if (-not $NoPath -and $UserPath -notlike "*$InstallDir*") {
     [Environment]::SetEnvironmentVariable("Path", "$UserPath;$InstallDir", "User")
     Write-Host "Added $InstallDir to your PATH." -ForegroundColor Green
 }
@@ -54,5 +55,9 @@ Remove-Item -Recurse -Force $TempDir
 
 Write-Host ""
 Write-Host "Lore $Version installed successfully!" -ForegroundColor Green
-Write-Host "Restart your terminal, then connect memory with: lore connect" -ForegroundColor Cyan
+if ($NoPath) {
+    Write-Host "Run $InstallDir\lore.exe connect to connect memory." -ForegroundColor Cyan
+} else {
+    Write-Host "Restart your terminal, then connect memory with: lore connect" -ForegroundColor Cyan
+}
 Write-Host "No API key is needed for memory. Lore's original coding agent is configured separately." -ForegroundColor DarkGray

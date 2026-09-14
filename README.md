@@ -32,6 +32,8 @@ sh install.sh
 
 The installers detect the operating system and CPU, download the matching
 archive from GitHub Releases, and verify its SHA-256 checksum before installing.
+Set `LORE_INSTALL_DIR` to use a custom directory. The Windows installer also
+accepts `-NoPath` when the user does not want it to change the user PATH.
 
 ## Connect
 

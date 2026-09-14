@@ -2,6 +2,7 @@
 set -eu
 
 PURGE_DATA=false
+INSTALL_DIR="${LORE_INSTALL_DIR:-/usr/local/bin}"
 if [ "${1:-}" = "--purge-data" ]; then
     PURGE_DATA=true
 elif [ -n "${1:-}" ]; then
@@ -13,8 +14,12 @@ if command -v lore >/dev/null 2>&1; then
     lore disconnect --all
 fi
 
-if [ -e /usr/local/bin/lore ]; then
-    sudo rm -f /usr/local/bin/lore
+if [ -e "$INSTALL_DIR/lore" ]; then
+    if [ "$INSTALL_DIR" = "/usr/local/bin" ]; then
+        sudo rm -f "$INSTALL_DIR/lore"
+    else
+        rm -f "$INSTALL_DIR/lore"
+    fi
 fi
 
 if [ "$PURGE_DATA" = true ]; then

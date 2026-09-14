@@ -1,12 +1,13 @@
 param(
-    [switch]$PurgeData
+    [switch]$PurgeData,
+    [string]$InstallDir = $(if ($env:LORE_INSTALL_DIR) { $env:LORE_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA "lore" }),
+    [switch]$SkipDisconnect
 )
 
 $ErrorActionPreference = "Stop"
-$InstallDir = Join-Path $env:LOCALAPPDATA "lore"
 $Executable = Join-Path $InstallDir "lore.exe"
 
-if (Test-Path -LiteralPath $Executable) {
+if (-not $SkipDisconnect -and (Test-Path -LiteralPath $Executable)) {
     & $Executable disconnect --all
 }
 

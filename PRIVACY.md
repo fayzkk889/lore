@@ -9,9 +9,9 @@ to Lore or to a Lore-operated server.
 ## Data Lore reads
 
 When memory is connected, Lore may read supported AI-client transcripts stored
-on the same computer. Automatic discovery currently covers Codex and Claude
-Code. Lore can also read a file or export when the user explicitly asks to
-import it.
+on the same computer. Automatic discovery currently covers Codex, Claude Code,
+and Qwen Code. Lore can also read a file or export when the user explicitly asks
+to import it.
 
 Lore's original coding-agent commands may read project files and execute tools
 according to the permission mode selected by the user.

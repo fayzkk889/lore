@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.0-alpha.4
+
+- Automatically discovers current Qwen Code session history alongside Codex
+  and Claude Code.
+- Supports Qwen's default history directory plus `QWEN_HOME` and
+  `QWEN_RUNTIME_DIR` overrides.
+- Excludes Qwen system events, hidden thoughts, tool calls, and tool results
+  from the searchable archive.
+
 ## v0.10.0-alpha.3
 
 - Prevents the Windows uninstaller from deleting unrelated files in a custom

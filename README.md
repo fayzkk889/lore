@@ -65,10 +65,10 @@ one-time connection and administrative operations.
 
 ## Current coverage
 
-Lore automatically discovers local **Codex** and **Claude Code** histories.
-Cursor, Qwen Code, and Claude Desktop can read and write shared Lore memory,
-but their older native chats are not automatically imported yet. Cloud-only
-ChatGPT and Claude histories require an accessible export file.
+Lore automatically discovers local **Codex**, **Claude Code**, and **Qwen Code**
+histories. Cursor and Claude Desktop can read and write shared Lore memory, but
+their older native chats are not automatically imported yet. Cloud-only ChatGPT
+and Claude histories require an accessible export file.
 
 ## Privacy
 

@@ -12,9 +12,8 @@ service.
 Lore is free during its alpha. Its current implementation is closed source.
 Earlier versions that were published under MIT remain governed by MIT.
 
-The current release is **v0.10.0-alpha.7**. Windows is the primary beta download;
-Linux is available too. macOS builds are previews until Apple signing and
-notarization are completed.
+The current release is **v0.10.0-alpha.7**. This launch supports Windows amd64 and arm64.
+Other operating systems are deferred.
 
 ### Windows protection notices
 

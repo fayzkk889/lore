@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.10.0-alpha.6
+
+- Adds managed startup memory guidance for Codex, Claude Code and Qwen Code.
+- Uses recent visible turns, including the latest user request, for continuation.
+- Excludes transport/tool-log scaffolding from search and deduplicates copied hits.
+- Returns focused, cited excerpts within one strict 6,000-character default budget.
+- Tightens weak overlap and exact-subject matching for credential questions.
+- Preserves explicit version/number/alias constraints across alternate queries.
+- Automatically rebuilds incompatible search caches.
+- Validated against actual local histories and fresh model sessions, in addition
+  to six native OS/CPU regression and installer gates.
+- Windows remains unsigned; macOS signing/notarization remains incomplete.
+
 ## v0.10.0-alpha.5
 
 - Tries bounded automatic alternatives after an empty engineering-topic search.

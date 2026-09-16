@@ -10,7 +10,7 @@ service.
 Lore is free during its alpha. Its current implementation is closed source.
 Earlier versions that were published under MIT remain governed by MIT.
 
-The current release is **v0.10.0-alpha.5**. Windows is the primary beta download;
+The current release is **v0.10.0-alpha.6**. Windows is the primary beta download;
 Linux is available too. macOS builds are previews until Apple signing and
 notarization are completed.
 
@@ -69,6 +69,11 @@ lore connect --all
 
 Restart the connected client. Then use normal prompts:
 
+For Codex, Claude Code and Qwen Code, connection also adds a short memory
+instruction block to the client's default global guidance file. Existing
+guidance is preserved. This makes history requests visible to the agent before
+it discovers Lore's MCP tools. Disconnect removes Lore's instruction block.
+
 ```text
 Read the relevant history and continue this work.
 Get the production database decision from Lore.
@@ -79,6 +84,10 @@ Forget the obsolete deployment conversation from Lore.
 
 The model calls Lore through MCP. Terminal commands are only needed for the
 one-time connection and administrative operations.
+
+To upgrade from an earlier beta, rerun the installer and `lore connect`, then
+restart the client. Reconnecting refreshes the stable MCP executable and the
+new memory guidance. Other clients may require explicitly saying “through Lore.”
 
 ## Current coverage
 
@@ -94,7 +103,10 @@ automatically access chat history through Lore.
 
 Recall uses local vocabulary-based search and bounded automatic alternatives for
 common engineering questions. It can miss paraphrases; a model may need to retry
-with more specific terms. Use a consistent workspace path: switching between
+with more specific terms. General continuation retrieves recent visible turns;
+default recall returns up to four evidence windows within 6,000 characters.
+The agent should check whether the excerpts answer the question and explain gaps.
+Use a consistent workspace path: switching between
 symlink aliases can miss path-scoped history. Memory does not sync across devices.
 
 ## Privacy

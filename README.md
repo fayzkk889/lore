@@ -10,6 +10,21 @@ service.
 Lore is free during its alpha. Its current implementation is closed source.
 Earlier versions that were published under MIT remain governed by MIT.
 
+The current release is **v0.10.0-alpha.5**. Windows is the primary beta download;
+Linux is available too. macOS builds are previews until Apple signing and
+notarization are completed.
+
+### Windows protection notices
+
+This beta's executable and PowerShell installer are **unsigned**. SmartScreen may
+show an unknown-publisher warning, and Smart App Control or a workplace policy
+may block them. We cannot promise installation on every Windows machine yet.
+Do not disable system protections to install Lore. If blocked, report the exact
+message and your OS/client versions without sharing private history.
+
+The macOS archives are not Developer ID signed or notarized; Gatekeeper may block
+them. Code signing is separate from the archive checksum verification below.
+
 ## Install
 
 ### Windows
@@ -32,6 +47,8 @@ sh install.sh
 
 The installers detect the operating system and CPU, download the matching
 archive from GitHub Releases, and verify its SHA-256 checksum before installing.
+They also check that the candidate runs and reports the expected version before
+replacing an existing installation.
 Set `LORE_INSTALL_DIR` to use a custom directory. The Windows installer also
 accepts `-NoPath` when the user does not want it to change the user PATH.
 
@@ -69,6 +86,16 @@ Lore automatically discovers local **Codex**, **Claude Code**, and **Qwen Code**
 histories. Cursor and Claude Desktop can read and write shared Lore memory, but
 their older native chats are not automatically imported yet. Cloud-only ChatGPT
 and Claude histories require an accessible export file.
+
+OpenCode can be configured manually with a local stdio MCP server running
+`lore mcp`; automatic OpenCode setup/history capture is not included in this beta.
+Ollama models need a tool-executing client connected to Lore; bare Ollama does not
+automatically access chat history through Lore.
+
+Recall uses local vocabulary-based search and bounded automatic alternatives for
+common engineering questions. It can miss paraphrases; a model may need to retry
+with more specific terms. Use a consistent workspace path: switching between
+symlink aliases can miss path-scoped history. Memory does not sync across devices.
 
 ## Privacy
 

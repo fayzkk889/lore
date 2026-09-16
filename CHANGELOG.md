@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.10.0-alpha.5
+
+- Tries bounded automatic alternatives after an empty engineering-topic search.
+- Reports supported and accessible history sources separately from new imports.
+- Checks candidate execution/version before replacing an existing installation.
+- Detects Windows ARM64 from emulated shells.
+- Fixes lost shell output and incomplete final output aggregation.
+- Adds native OS/CPU, MCP and installer lifecycle checks.
+- Windows remains unsigned; macOS signing/notarization is not yet completed.
+
 ## v0.10.0-alpha.4
 
 - Automatically discovers current Qwen Code session history alongside Codex

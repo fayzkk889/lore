@@ -1,7 +1,7 @@
 #!/bin/bash
-set -e
+set -eu
 
-VERSION="${LORE_VERSION:-0.10.0-alpha.4}"
+VERSION="${LORE_VERSION:-0.10.0-alpha.5}"
 REPO="fayzkk889/lore"
 INSTALL_DIR="${LORE_INSTALL_DIR:-/usr/local/bin}"
 INSTALL_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/lore-install.XXXXXX")
@@ -46,6 +46,16 @@ fi
 
 echo "Extracting..."
 tar -xzf "${INSTALL_TMP_DIR}/${FILENAME}" -C "$INSTALL_TMP_DIR"
+
+echo "Checking the downloaded executable before replacing an existing installation..."
+if ! VERSION_OUTPUT=$("${INSTALL_TMP_DIR}/lore" --version 2>&1); then
+    echo "Lore could not run. The existing installation was left unchanged. Check OS security policy and platform compatibility." >&2
+    exit 1
+fi
+case "$VERSION_OUTPUT" in
+    *"lore version ${VERSION}"*) ;;
+    *) echo "Downloaded binary returned an unexpected version" >&2; exit 1 ;;
+esac
 
 echo "Installing to ${INSTALL_DIR}..."
 if [ "$INSTALL_DIR" = "/usr/local/bin" ]; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-VERSION="${LORE_VERSION:-0.10.0-alpha.6}"
+VERSION="${LORE_VERSION:-0.10.0-alpha.7}"
 REPO="fayzkk889/lore"
 INSTALL_DIR="${LORE_INSTALL_DIR:-/usr/local/bin}"
 INSTALL_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/lore-install.XXXXXX")

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.10.0-alpha.7
+
+- Adds a native browser bridge and optional ChatGPT/Claude extension preview.
+- Captures opted-in visible conversations into the same project memory used by MCP.
+- Retrieves bounded project context and inserts it into empty browser drafts.
+- Preserves existing drafts, pauses capture, and reports unsupported layouts.
+- Deduplicates stable message IDs and preserves partially mounted history.
+- Labels browser timestamps as capture times, not original authored dates.
+- Uses updated app executables without reinstalling extension code.
+- Fixes Windows exclusive lock-file contention for archive and history sync.
+- Passes six native and exact-package platform gates plus 16 Chromium fixture
+  journeys and a fresh browser-to-coding-agent memory recovery test.
+- Browser-store publishing and authenticated live-site validation remain pending.
+
 ## v0.10.0-alpha.6
 
 - Adds managed startup memory guidance for Codex, Claude Code and Qwen Code.

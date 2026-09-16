@@ -1,3 +1,5 @@
+**Current launch: Windows only (amd64 and arm64).** Start with the Windows installer below. macOS and Linux expansion is deferred; historical platform instructions do not define current launch support.
+
 # Lore
 
 **Private local memory for coding agents.**
@@ -10,7 +12,7 @@ service.
 Lore is free during its alpha. Its current implementation is closed source.
 Earlier versions that were published under MIT remain governed by MIT.
 
-The current release is **v0.10.0-alpha.6**. Windows is the primary beta download;
+The current release is **v0.10.0-alpha.7**. Windows is the primary beta download;
 Linux is available too. macOS builds are previews until Apple signing and
 notarization are completed.
 
@@ -91,10 +93,38 @@ new memory guidance. Other clients may require explicitly saying “through Lore
 
 ## Current coverage
 
+### Browser project memory — developer preview
+
+Alpha.7 includes `lore browser install` and an optional Chrome/Edge extension
+archive on the release page. Extract the extension ZIP, load its folder through
+the browser's **Load unpacked** option, then run `lore browser install` once from
+the installed app. In a saved ChatGPT/Claude conversation, open Lore, select the
+project and explicitly enable capture. Capture starts off and is per conversation.
+
+In a new browser chat, choose that project and click **Get project context**.
+Insert it into an empty draft or copy it, review it, and send yourself. Connected
+coding agents recall the same captured history through Lore. Choose an existing
+workspace for default agent scope; request a named project explicitly otherwise.
+
+The bridge uses the registered installed executable, so app updates replacing
+that path are used without reinstalling the extension. This does not introduce
+an app auto-updater. Extension code still requires an extension update; the
+unpacked preview does not have store-managed updates. Moving the app requires
+rerunning `lore browser install`.
+
+Store publishing and authenticated live-site validation are pending. Chromium
+tests use controlled site-layout fixtures. Capture covers recognized rendered
+messages, not all account history, hidden messages, attachments or every branch.
+Stable-ID edits replace their saved turn; without IDs, content hashes preserve
+partially mounted history but older edited versions can remain. Browser timestamps
+are capture times, not original message dates. The popup reports capture failures.
+
+### Local coding agents and other clients
+
 Lore automatically discovers local **Codex**, **Claude Code**, and **Qwen Code**
 histories. Cursor and Claude Desktop can read and write shared Lore memory, but
-their older native chats are not automatically imported yet. Cloud-only ChatGPT
-and Claude histories require an accessible export file.
+their older native chats are not automatically imported yet. ChatGPT and Claude
+history not captured by the optional extension needs an accessible export file.
 
 OpenCode can be configured manually with a local stdio MCP server running
 `lore mcp`; automatic OpenCode setup/history capture is not included in this beta.
@@ -144,3 +174,4 @@ vulnerability.
 
 Official unmodified binaries are free for personal and internal business use
 under the [Lore Free Binary License](LICENSE).
+

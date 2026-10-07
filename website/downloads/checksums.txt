@@ -1,0 +1,3 @@
+f407e0ccfc7d613483ce195024540e937186683fa54f3c70ceba5266ac65d11e  lore_0.10.0-alpha.7_windows_amd64.zip
+8c18d5490a564ad5b868ef92b2dbb992243708a9eb6d0cb864a84fb37f62a168  lore_0.10.0-alpha.7_windows_arm64.zip
+ea4110ccc72915468d2a6eaf3cf3270c2aa999b3cf6538a71b8941d0efbe2950  lore_browser_extension_0.1.0_preview.zip

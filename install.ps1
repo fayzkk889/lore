@@ -19,24 +19,45 @@ $Arch = if ([Environment]::Is64BitOperatingSystem) {
 $Filename = "lore_${Version}_windows_${Arch}.zip"
 $Url = "https://github.com/$Repo/releases/download/v$Version/$Filename"
 $ChecksumsUrl = "https://github.com/$Repo/releases/download/v$Version/checksums.txt"
+$MirrorUrl = "https://loredev.co/downloads/$Filename"
+$MirrorChecksumsUrl = "https://loredev.co/downloads/checksums.txt"
 $TempDir = Join-Path $env:TEMP ("lore-install-" + [guid]::NewGuid().ToString("N"))
 
 Write-Host "Downloading Lore $Version for Windows/$Arch..." -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $TempDir | Out-Null
 try {
-    Invoke-WebRequest -Uri $Url -OutFile (Join-Path $TempDir $Filename)
-    Invoke-WebRequest -Uri $ChecksumsUrl -OutFile (Join-Path $TempDir "checksums.txt")
-
-    Write-Host "Verifying checksum..." -ForegroundColor Cyan
-    $ExpectedLines = @(Get-Content (Join-Path $TempDir "checksums.txt") | Where-Object { $_ -match "^[a-fA-F0-9]{64}\s+$([regex]::Escape($Filename))$" })
-    if ($ExpectedLines.Count -ne 1) {
-        throw "Expected exactly one valid checksum for $Filename"
+    $Downloaded = $false
+    $DownloadErrors = @()
+    $Sources = @(
+        @{ Name = 'loredev.co'; Archive = $MirrorUrl; Checksums = $MirrorChecksumsUrl },
+        @{ Name = 'GitHub Releases'; Archive = $Url; Checksums = $ChecksumsUrl }
+    )
+    foreach ($Source in $Sources) {
+        try {
+            Remove-Item -LiteralPath (Join-Path $TempDir $Filename) -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath (Join-Path $TempDir 'checksums.txt') -Force -ErrorAction SilentlyContinue
+            Write-Host "Trying $($Source.Name)..." -ForegroundColor Cyan
+            Invoke-WebRequest -Uri $Source.Archive -OutFile (Join-Path $TempDir $Filename) -TimeoutSec 90
+            Invoke-WebRequest -Uri $Source.Checksums -OutFile (Join-Path $TempDir 'checksums.txt') -TimeoutSec 30
+            Write-Host "Verifying checksum..." -ForegroundColor Cyan
+            $ExpectedLines = @(Get-Content (Join-Path $TempDir 'checksums.txt') | Where-Object { $_ -match "^[a-fA-F0-9]{64}\s+$([regex]::Escape($Filename))$" })
+            if ($ExpectedLines.Count -ne 1) { throw "Expected exactly one valid checksum for $Filename" }
+            $Expected = ($ExpectedLines[0] -split "\s+")[0].ToLowerInvariant()
+            $Actual = (Get-FileHash -Algorithm SHA256 (Join-Path $TempDir $Filename)).Hash.ToLowerInvariant()
+            if ($Actual -ne $Expected) { throw "Checksum verification failed" }
+            if ($Version -eq '0.10.0-alpha.7') {
+                $Pinned = @{ amd64 = 'f407e0ccfc7d613483ce195024540e937186683fa54f3c70ceba5266ac65d11e'; arm64 = '8c18d5490a564ad5b868ef92b2dbb992243708a9eb6d0cb864a84fb37f62a168' }
+                if ($Expected -ne $Pinned[$Arch]) { throw "Release checksum does not match the pinned $Arch alpha.7 build" }
+            }
+            $Downloaded = $true
+            break
+        } catch {
+            $DownloadErrors += "$($Source.Name): $_"
+            Write-Warning "$($Source.Name) download or verification failed; trying another source."
+        }
     }
-    $ExpectedLine = $ExpectedLines[0]
-    $Expected = ($ExpectedLine -split "\s+")[0].ToLowerInvariant()
-    $Actual = (Get-FileHash -Algorithm SHA256 (Join-Path $TempDir $Filename)).Hash.ToLowerInvariant()
-    if ($Actual -ne $Expected) {
-        throw "Checksum verification failed"
+    if (-not $Downloaded) {
+        throw "Could not download a verified Lore archive. $($DownloadErrors -join ' | ')"
     }
 
     Write-Host "Extracting..." -ForegroundColor Cyan

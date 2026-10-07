@@ -1,5 +1,3 @@
-**Current launch: Windows only (amd64 and arm64).** Start with the Windows installer below. macOS and Linux expansion is deferred; historical platform instructions do not define current launch support.
-
 # Lore
 
 **Private local memory for coding agents.**
@@ -8,6 +6,12 @@ Lore lets Codex, Claude Code, Cursor, Qwen Code, and Claude Desktop recall
 useful context from earlier AI work. Memory stays on the user's computer and
 ordinary memory operations require no Lore account, API key, or hosted memory
 service.
+
+On Windows, Lore can read accessible **existing** Codex, Claude Code, and Qwen
+Code transcripts when an agent recalls them. You can ask about a past project
+decision immediately after connecting, with references to the original chat.
+Cursor and Claude Desktop can use the shared memory, but their own older chats
+are not automatically discovered.
 
 Lore is free during its alpha. Its current implementation is closed source.
 Earlier versions that were published under MIT remain governed by MIT.
@@ -23,9 +27,6 @@ may block them. We cannot promise installation on every Windows machine yet.
 Do not disable system protections to install Lore. If blocked, report the exact
 message and your OS/client versions without sharing private history.
 
-The macOS archives are not Developer ID signed or notarized; Gatekeeper may block
-them. Code signing is separate from the archive checksum verification below.
-
 ## Install
 
 ### Windows
@@ -39,19 +40,12 @@ Invoke-WebRequest https://raw.githubusercontent.com/fayzkk889/lore/main/install.
 
 Restart the terminal afterward.
 
-### macOS or Linux
-
-```sh
-curl -fsSLO https://raw.githubusercontent.com/fayzkk889/lore/main/install.sh
-sh install.sh
-```
-
-The installers detect the operating system and CPU, download the matching
-archive from GitHub Releases, and verify its SHA-256 checksum before installing.
-They also check that the candidate runs and reports the expected version before
+The installer detects the Windows CPU architecture, downloads the matching
+archive from GitHub Releases, and verifies its SHA-256 checksum before installing.
+It also checks that the candidate runs and reports the expected version before
 replacing an existing installation.
-Set `LORE_INSTALL_DIR` to use a custom directory. The Windows installer also
-accepts `-NoPath` when the user does not want it to change the user PATH.
+Set `LORE_INSTALL_DIR` to use a custom directory. Pass `-NoPath` when you do not
+want the installer to change your user PATH.
 
 ## Connect
 
@@ -157,11 +151,10 @@ To remove Lore from client configurations while preserving unrelated settings:
 lore disconnect --all
 ```
 
-Windows users can then run `uninstall.ps1`; macOS and Linux users can run
-`sh uninstall.sh`. The uninstallers remove only Lore's binary and leave other
-files in a custom install directory untouched. Local memory is retained by
-default so reinstalling does not lose it. Pass `-PurgeData` on Windows or
-`--purge-data` on Unix only when the archive should also be permanently removed.
+Run `uninstall.ps1` to remove Lore's binary. The uninstaller leaves other files
+in a custom install directory untouched. Local memory is retained by default
+so reinstalling does not lose it. Pass `-PurgeData` only when the archive should
+also be permanently removed.
 
 ## Feedback and security
 

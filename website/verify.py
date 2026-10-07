@@ -2,6 +2,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
+import hashlib
 
 root=Path(__file__).resolve().parent
 class Page(HTMLParser):
@@ -24,4 +25,8 @@ for name,page in pages.items():
 assert len(pages)==5
 assert pages['docs.html'].copies[0].splitlines()==['Invoke-WebRequest https://raw.githubusercontent.com/fayzkk889/lore/main/install.ps1 -OutFile install-lore.ps1',r'.\install-lore.ps1']
 assert 'No signup' not in (root/'index.html').read_text()
+for line in (root/'downloads'/'checksums.txt').read_text(encoding='ascii').splitlines():
+    expected, name=line.split()
+    actual=hashlib.sha256((root/'downloads'/name).read_bytes()).hexdigest()
+    assert actual==expected,(name,'checksum mismatch')
 print('WEBSITE_LOCAL_LINKS_ASSETS_AND_COMMANDS_OK',len(pages),'pages')

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.10.0-alpha.9-mcp — developer preview
+
+- Ships a dedicated local MCP memory server for Windows via Ubuntu WSL 2, without
+  a new unsigned native Windows executable or standalone coding-agent UI.
+- Connects to Codex and adds managed guidance so ordinary history requests call
+  Lore while preserving existing Codex instructions.
+- Normalizes Windows and WSL workspace paths for project-scoped recall.
+- Filters transcript scaffolding from evidence and tightens uncertain counts and
+  named-subject answers.
+- Passed local archive/autosync/MCP tests and fresh Codex recall sessions on one
+  Windows PC. Other MCP clients and broad Windows installation remain untested.
+
 ## v0.10.0-alpha.7
 
 - Adds a native browser bridge and optional ChatGPT/Claude extension preview.

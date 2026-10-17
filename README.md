@@ -8,14 +8,15 @@ need a Lore account or hosted memory service.
 
 ## Current developer preview
 
-**0.10.0-alpha.9-mcp** is a free, closed-source MCP-only preview for **Codex on
-Windows through Ubuntu WSL 2**. It does not include Lore's original standalone
+**0.10.0-alpha.10-mcp** is a free, closed-source MCP-only preview for **Codex and
+Claude Code on Windows through Ubuntu WSL 2**. It does not include Lore's original standalone
 coding agent, a new native Windows executable, or the browser extension. The
-Windows/WSL/Codex flow was tested end to end on one PC with Smart App Control
-enabled. Other MCP clients have not yet been validated with this package.
+Windows/WSL flows were tested in both directions on one PC with Smart App
+Control enabled. Other MCP clients have not yet been validated with this package.
 
 Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and
-[install-codex.ps1](website/downloads/install-codex.ps1) into the same folder,
+[install-codex.ps1](website/downloads/install-codex.ps1) or
+[install-claude-code.ps1](website/downloads/install-claude-code.ps1) into the same folder,
 then follow the [setup guide](MCP_PREVIEW.md). The
 [checksums](website/downloads/checksums.txt),
 [license](website/downloads/LICENSE.txt) and
@@ -23,13 +24,13 @@ then follow the [setup guide](MCP_PREVIEW.md). The
 download. The same static site files are in [website/](website/) for manual
 Cloudflare Pages upload.
 
-Once installed, start a **new** Codex task in your project and say:
+Once installed, start a **new** Codex or Claude Code session in your project and say:
 
 ```text
 Read the relevant history, then continue.
 ```
 
-The installer adds managed Codex guidance for that plain request. You can name
+The installers add managed guidance for that plain request. You can name
 Lore explicitly when needed. Lore discovers accessible local Codex, Claude
 Code and Qwen Code session files, but it cannot automatically read cloud-only
 ChatGPT or Claude account history. Retrieved chat statements are evidence to

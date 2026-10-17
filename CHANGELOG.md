@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.10.0-alpha.10-mcp — cross-harness preview
+
+- Adds a tested Claude Code installer. Fresh Claude Code and Codex sessions
+  recovered each other's project work with source-message citations.
+- Excludes synthetic Codex approval-review helper sessions from search and
+  continuation without deleting archived records.
+- Routes plain "what did Codex/Claude Code do last?" questions to recent history
+  for the named harness, avoiding older textually similar sessions.
+- Installs the WSL binary atomically so a running MCP process is not corrupted
+  by an in-place Windows copy.
+- Remains a Windows/Ubuntu WSL 2 developer preview; browser-only histories still
+  require capture or import, and other MCP clients are not yet validated.
+
 ## v0.10.0-alpha.9-mcp — developer preview
 
 - Ships a dedicated local MCP memory server for Windows via Ubuntu WSL 2, without

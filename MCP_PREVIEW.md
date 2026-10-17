@@ -1,37 +1,42 @@
-# Lore MCP-only developer preview
+# Lore MCP developer preview
 
-This preview is free, closed-source local project memory for Codex on Windows
-through Ubuntu WSL 2. It ships a Linux MCP server, not a new unsigned Windows
-Lore executable. This avoids the Smart App Control block seen on our test PC,
-but installing WSL is a real prerequisite.
+Lore gives Codex and Claude Code one local, cited memory of accessible coding
+chats. It is free and closed source in this preview. The supported setup is
+Windows with Ubuntu WSL 2; the Linux MCP server runs through WSL, avoiding a
+new unsigned native Windows executable.
 
-## Set up Codex
+## Set up your agent
 
 1. Complete [Microsoft's Ubuntu WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install)
-   and launch Ubuntu once. Ensure `codex` is available in PowerShell.
-2. Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and
-   [install-codex.ps1](website/downloads/install-codex.ps1) into the same folder.
-3. Open PowerShell in that folder and run `.\install-codex.ps1`. If the WSL
-   distribution has another name, use `.\install-codex.ps1 -Distro YourName`.
-4. Open a **new** Codex task in your project and ask:
-   `Read the relevant history, then continue.`
+   and launch Ubuntu once. Have `codex` or `claude` available in PowerShell.
+2. Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and the
+   [Codex installer](website/downloads/install-codex.ps1) or
+   [Claude Code installer](website/downloads/install-claude-code.ps1) into the
+   same folder.
+3. Run `.\install-codex.ps1` or `.\install-claude-code.ps1` in PowerShell. Run
+   both if you use both agents. If your WSL distribution is not named Ubuntu,
+   add `-Distro YourName`.
+4. Start a **new** agent session in the project and ask: “Read the relevant
+   history, then continue.” For a targeted question, say, “Through Lore, what
+   did Codex do last on this project?”
 
-The installer verifies the binary, backs up existing Codex configuration and
-instructions, and adds a managed instruction so a plain history request calls
-Lore. It preserves the local archive at `%USERPROFILE%\.lore\archive.json`.
-If PowerShell blocks a downloaded script, inspect it and use manual setup
-instead of disabling Windows protection.
-
-See the [SHA-256 checksums](website/downloads/checksums.txt),
+The installers verify the binary hash, back up existing client configuration
+and instructions, install the local MCP server, and leave the memory archive at
+`%USERPROFILE%\.lore\archive.json` intact. They replace the WSL binary
+atomically and roll back on setup failure. If PowerShell blocks a downloaded
+script, inspect it and use manual setup instead of disabling Windows
+protection. Check the [SHA-256 checksums](website/downloads/checksums.txt),
 [Free Binary License](website/downloads/LICENSE.txt), and
 [third-party notices](website/downloads/THIRD_PARTY_NOTICES.txt).
 
 ## Scope
 
-Codex on Windows with Ubuntu WSL 2 was tested end to end. The same local MCP
-server may be configurable in other MCP clients, but they have not been
-validated with this package. Lore can discover accessible local Codex, Claude
-Code, and Qwen Code session files. Cloud-only browser chats still need capture
-or import; the older browser extension is not included here. Lore returns
-candidate evidence with source references, not independent proof of actions
-outside the chat. There is no hosted Lore memory service or cross-device sync.
+Codex and Claude Code were tested end to end in both directions on one Windows
+PC. Lore also discovers accessible local Qwen Code sessions, but this package
+does not configure Qwen Code as an MCP client. Browser ChatGPT and Claude
+account histories are not automatically available: uncaptured cloud chats need
+a separate capture or import path. Other MCP hosts, including Ollama-based
+clients, need their own validation. Lore supplies historical excerpts with
+source IDs; it cannot prove an external action happened. There is no hosted
+Lore account or cross-device sync. The chosen AI provider receives excerpts
+its agent requests, not the entire archive.

@@ -38,6 +38,7 @@ for name, page in pages.items():
 expected_files = {
     "lore-mcp-linux",
     "install-codex.ps1",
+    "install-claude-code.ps1",
     "LICENSE.txt",
     "THIRD_PARTY_NOTICES.txt",
     "checksums.txt",

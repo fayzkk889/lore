@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.0-alpha.11-mcp — MCP memory reliability
+
+- Imports browser chat exports from ordinary Windows file paths when the MCP
+  server runs in WSL.
+- Hides synthetic Codex approval-review sessions from the all-sources memory
+  list, consistent with their exclusion from recall.
+- Passed 32 isolated MCP user-journey checks and the archive, autosync, MCP,
+  connection, configuration and path test suites under WSL.
+
 ## v0.10.0-alpha.10-mcp — cross-harness preview
 
 - Adds a tested Claude Code installer. Fresh Claude Code and Codex sessions

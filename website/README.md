@@ -4,7 +4,7 @@ Upload this entire folder to the existing loredev.co Cloudflare Pages project.
 Keep index.html at the root and include the downloads folder. This is a static
 site with no build command, dependencies, or secrets.
 
-This version describes **0.10.0-alpha.10-mcp**, the free, closed-source Lore
+This version describes **0.10.0-alpha.11-mcp**, the free, closed-source Lore
 developer preview for Codex and Claude Code on Windows via Ubuntu WSL 2. It replaces the
 previous unsigned Windows executable and browser-extension links. The preview
 is tested locally but is not a broad one-click Windows release. Other MCP

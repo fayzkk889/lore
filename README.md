@@ -8,11 +8,11 @@ need a Lore account or hosted memory service.
 
 ## Current developer preview
 
-**0.10.0-alpha.10-mcp** is a free, closed-source MCP-only preview for **Codex and
+**0.10.0-alpha.11-mcp** is a free, closed-source MCP-only preview for **Codex and
 Claude Code on Windows through Ubuntu WSL 2**. It does not include Lore's original standalone
 coding agent, a new native Windows executable, or the browser extension. The
-Windows/WSL flows were tested in both directions on one PC with Smart App
-Control enabled. Other MCP clients have not yet been validated with this package.
+Codex and Claude Code flows were tested in both directions on one PC. Other MCP
+clients have not yet been validated with this package.
 
 Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and
 [install-codex.ps1](website/downloads/install-codex.ps1) or

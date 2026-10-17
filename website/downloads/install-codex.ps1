@@ -3,7 +3,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$expectedHash = '67A3BDCC454B8C29C1EA53A458E3E162C8A96724686A7C2591FBA4BB6FB9B9A4'
+$expectedHash = 'F26D33F5769D43FD0517CAC4C95B49A2E4E8DB593791CBF08D2160AB70D56622'
 $source = Join-Path $PSScriptRoot 'lore-mcp-linux'
 if (-not (Test-Path -LiteralPath $source)) { throw 'Lore MCP binary is missing from this folder.' }
 if ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne $expectedHash) {
@@ -35,8 +35,9 @@ function Install-LoreBinary([string]$from, [string]$hash) {
     if ($LASTEXITCODE -ne 0) { throw 'Could not atomically install Lore MCP in WSL.' }
 }
 $config = Join-Path $env:USERPROFILE '.codex\config.toml'
+$configExisted = Test-Path -LiteralPath $config
 $configBackup = "$config.lore-mcp-backup-$stamp"
-if (Test-Path -LiteralPath $config) { Copy-Item -LiteralPath $config -Destination $configBackup -Force }
+if ($configExisted) { Copy-Item -LiteralPath $config -Destination $configBackup -Force }
 $guidanceFolder = Join-Path $env:USERPROFILE '.codex'
 $override = Join-Path $guidanceFolder 'AGENTS.override.md'
 $guidance = if (Test-Path -LiteralPath $override) { $override } else { Join-Path $guidanceFolder 'AGENTS.md' }
@@ -57,7 +58,7 @@ $installed = $false
 try {
     Install-LoreBinary $source $expectedHash
     $startedVersion = (& "$env:WINDIR\System32\wsl.exe" -d $Distro --exec $wslDestination --version | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or $startedVersion -ne 'lore-mcp 0.10.0-alpha.10-mcp') {
+    if ($LASTEXITCODE -ne 0 -or $startedVersion -ne 'lore-mcp 0.10.0-alpha.11-mcp') {
         throw 'Lore MCP did not start at the expected version in WSL.'
     }
 
@@ -88,7 +89,11 @@ try {
     Write-Output 'Lore MCP is connected to Codex. Open a new Codex task and ask: Read the relevant history.'
 } finally {
     if (-not $installed) {
-        if (Test-Path -LiteralPath $configBackup) { Copy-Item -LiteralPath $configBackup -Destination $config -Force }
+        if ($configExisted -and (Test-Path -LiteralPath $configBackup)) {
+            Copy-Item -LiteralPath $configBackup -Destination $config -Force
+        } elseif (-not $configExisted -and (Test-Path -LiteralPath $config)) {
+            Remove-Item -LiteralPath $config -Force
+        }
         if (Test-Path -LiteralPath $guidanceBackup) {
             Copy-Item -LiteralPath $guidanceBackup -Destination $guidance -Force
         } elseif (-not $guidanceExisted -and (Test-Path -LiteralPath $guidance)) {

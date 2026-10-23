@@ -1,42 +1,53 @@
-# Lore MCP developer preview
+# Lore alpha.24: Windows desktop setup
 
-Lore gives Codex and Claude Code one local, cited memory of accessible coding
-chats. It is free and closed source in this preview. The supported setup is
-Windows with Ubuntu WSL 2; the Linux MCP server runs through WSL, avoiding a
-new unsigned native Windows executable.
+Lore shares one local memory archive between connected desktop coding tools.
+You do not need WSL, a Lore account, an API key for Lore, or a manual import of
+supported local coding-agent histories.
 
-## Set up your agent
+## Install in one app
 
-1. Complete [Microsoft's Ubuntu WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install)
-   and launch Ubuntu once. Have `codex` or `claude` available in PowerShell.
-2. Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and the
-   [Codex installer](website/downloads/install-codex.ps1) or
-   [Claude Code installer](website/downloads/install-claude-code.ps1) into the
-   same folder.
-3. Run `.\install-codex.ps1` or `.\install-claude-code.ps1` in PowerShell. Run
-   both if you use both agents. If your WSL distribution is not named Ubuntu,
-   add `-Distro YourName`.
-4. Start a **new** agent session in the project and ask: “Read the relevant
-   history, then continue.” For a targeted question, say, “Through Lore, what
-   did Codex do last on this project?”
+- **Claude Desktop:** Download
+  [lore-memory-windows.mcpb](website/downloads/lore-memory-windows.mcpb). In
+  Claude Desktop, open **Settings → Extensions → Advanced settings → Install
+  Extension**, select the file, and review its computer-access prompt. Start a
+  new chat.
+- **Local Codex task in the ChatGPT desktop app:** Download
+  [lore-mcp.exe](website/downloads/lore-mcp.exe). Add it as a local **STDIO**
+  MCP server named `lore`, using the full downloaded path as its command.
+  Restart the app and start a new Codex task. This does not attach Lore to a
+  regular ChatGPT conversation.
 
-The installers verify the binary hash, back up existing client configuration
-and instructions, install the local MCP server, and leave the memory archive at
-`%USERPROFILE%\.lore\archive.json` intact. They replace the WSL binary
-atomically and roll back on setup failure. If PowerShell blocks a downloaded
-script, inspect it and use manual setup instead of disabling Windows
-protection. Check the [SHA-256 checksums](website/downloads/checksums.txt),
-[Free Binary License](website/downloads/LICENSE.txt), and
+In the connected app, ask:
+
+> Connect Lore to all my coding apps. Tell me which connected and which need attention.
+
+Review the settings change. Lore backs up each settings file before changing
+it, reports apps it cannot connect, and copies its server to a stable local
+path for newly connected clients. Restart newly connected apps. Codex may ask
+you to trust Lore's prompt hook.
+
+Then ask in a project chat:
+
+> Read the relevant history through Lore, then continue.
+
+For a specific question, include a project name, ticket ID, or a few keywords.
+Lore cites project, conversation, and message IDs so you can inspect the
+original source. Supported local Codex, Claude Code, and Qwen Code transcripts
+are indexed on startup and refreshed before recall; the source app need not be
+open. The archive is `%USERPROFILE%\.lore\archive.json`.
+
+## Scope and help
+
+Ordinary ChatGPT and Claude Desktop cloud conversations are not automatically
+backfilled or continuously captured merely by adding this MCP. Claude Desktop
+can read the local archive and save a deliberate checkpoint when asked. There
+is no cross-device sync. Lore cannot verify external events from a chat report
+alone. Its answers depend on the connected model using the tools correctly.
+
+The Windows executable is unsigned. If Windows blocks it, keep Defender and
+Smart App Control enabled and [report the exact warning](https://github.com/fayzkk889/lore/issues).
+For a missing tool, restart the client and start a new chat. Privately
+distributed Claude Desktop extensions must be installed again for updates.
+Check the [SHA-256 checksums](website/downloads/checksums.txt),
+[license](website/downloads/LICENSE.txt), and
 [third-party notices](website/downloads/THIRD_PARTY_NOTICES.txt).
-
-## Scope
-
-Codex and Claude Code were tested end to end in both directions on one Windows
-PC. Lore also discovers accessible local Qwen Code sessions, but this package
-does not configure Qwen Code as an MCP client. Browser ChatGPT and Claude
-account histories are not automatically available: uncaptured cloud chats need
-a separate capture or import path. Other MCP hosts, including Ollama-based
-clients, need their own validation. Lore supplies historical excerpts with
-source IDs; it cannot prove an external action happened. There is no hosted
-Lore account or cross-device sync. The chosen AI provider receives excerpts
-its agent requests, not the entire archive.

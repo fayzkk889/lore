@@ -1,22 +1,15 @@
-# Lore website — manual Cloudflare upload
+# Lore website — Windows alpha.24
 
-Upload this entire folder to the existing loredev.co Cloudflare Pages project.
-Keep index.html at the root and include the downloads folder. This is a static
-site with no build command, dependencies, or secrets.
+Upload the verified `lore-website-upload-alpha24` folder to the existing
+loredev.co Cloudflare Pages project. Keep `index.html` at the root and include
+the `downloads/` folder. Cloudflare Pages Direct Upload accepts a whole folder.
 
-This version describes **0.10.0-alpha.11-mcp**, the free, closed-source Lore
-developer preview for Codex and Claude Code on Windows via Ubuntu WSL 2. It replaces the
-previous unsigned Windows executable and browser-extension links. The preview
-is tested locally but is not a broad one-click Windows release. Other MCP
-clients need separate validation.
+Before publishing, run the alpha.24 upload verifier from the release folder.
+After publishing, check the home and setup pages, download both files, compare
+their SHA-256 hashes with `downloads/checksums.txt`, and try installation from
+the public download on a clean Windows PC when one is available.
 
-Before uploading, run `python verify.py` in this folder. After uploading,
-preview the Pages deployment and check the setup page plus the binary and
-script download links before sending people to it. The `_headers` file
-supplies Pages security headers. If your existing deployment is a Worker,
-use its static-asset deployment flow.
-
-The files under `downloads/` are the binary, Codex and Claude Code setup scripts, license,
-third-party notices, and SHA-256 checksums. The binary is a Linux executable
-for WSL, not a native Windows application. No app source or private memory
-archive belongs in this folder.
+The release contains a native Windows MCP executable, a Claude Desktop `.mcpb`
+extension, license, notices, and checksums. It contains no private chat archive
+or application source. The native executable is unsigned; the site states this
+limitation and directs users to keep Windows protections enabled.

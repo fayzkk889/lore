@@ -1,42 +1,14 @@
-# Lore MCP developer preview
+# Lore alpha.24: Windows desktop setup
 
-Lore gives Codex and Claude Code one local, cited memory of accessible coding
-chats. It is free and closed source in this preview. The supported setup is
-Windows with Ubuntu WSL 2; the Linux MCP server runs through WSL, avoiding a
-new unsigned native Windows executable.
+The current instructions and downloads are at [loredev.co/docs](https://loredev.co/docs). Lore is a free, closed-source local MCP memory tool for Windows. This release does not need WSL, a Lore account, a Lore API key, or a manual import of supported local coding-agent histories.
 
-## Set up your agent
+## Install in one app
 
-1. Complete [Microsoft's Ubuntu WSL installation](https://learn.microsoft.com/en-us/windows/wsl/install)
-   and launch Ubuntu once. Have `codex` or `claude` available in PowerShell.
-2. Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and the
-   [Codex installer](website/downloads/install-codex.ps1) or
-   [Claude Code installer](website/downloads/install-claude-code.ps1) into the
-   same folder.
-3. Run `.\install-codex.ps1` or `.\install-claude-code.ps1` in PowerShell. Run
-   both if you use both agents. If your WSL distribution is not named Ubuntu,
-   add `-Distro YourName`.
-4. Start a **new** agent session in the project and ask: “Read the relevant
-   history, then continue.” For a targeted question, say, “Through Lore, what
-   did Codex do last on this project?”
+- **Claude Desktop:** [Download the Lore extension (.mcpb)](https://loredev.co/downloads/lore-memory-windows.mcpb). In Claude Desktop, open **Settings → Extensions → Advanced settings → Install Extension**, select the file, review the computer-access warning, and start a new chat.
+- **Local Codex task in ChatGPT desktop:** [Download the Windows MCP server (.exe)](https://loredev.co/downloads/lore-mcp.exe). Add it as a local **STDIO MCP server** named `lore`, using its full path as the command. Restart the app and start a new Codex task. This does not attach to regular ChatGPT chat.
 
-The installers verify the binary hash, back up existing client configuration
-and instructions, install the local MCP server, and leave the memory archive at
-`%USERPROFILE%\.lore\archive.json` intact. They replace the WSL binary
-atomically and roll back on setup failure. If PowerShell blocks a downloaded
-script, inspect it and use manual setup instead of disabling Windows
-protection. Check the [SHA-256 checksums](website/downloads/checksums.txt),
-[Free Binary License](website/downloads/LICENSE.txt), and
-[third-party notices](website/downloads/THIRD_PARTY_NOTICES.txt).
+Ask your connected app: **“Connect Lore to all my coding apps. Tell me which connected and which need attention.”** Review the settings changes and restart newly connected apps. Then, in a project chat, ask: **“Read the relevant history through Lore, then continue.”**
 
-## Scope
+Lore indexes accessible local Codex, Claude Code, and Qwen Code transcripts and cites source messages. The source app need not be open. Ordinary ChatGPT and Claude Desktop cloud chats are not automatically backfilled or continuously captured by an MCP connection. Claude Desktop can read Lore's existing archive and save a deliberate checkpoint when asked. Memory does not sync across PCs.
 
-Codex and Claude Code were tested end to end in both directions on one Windows
-PC. Lore also discovers accessible local Qwen Code sessions, but this package
-does not configure Qwen Code as an MCP client. Browser ChatGPT and Claude
-account histories are not automatically available: uncaptured cloud chats need
-a separate capture or import path. Other MCP hosts, including Ollama-based
-clients, need their own validation. Lore supplies historical excerpts with
-source IDs; it cannot prove an external action happened. There is no hosted
-Lore account or cross-device sync. The chosen AI provider receives excerpts
-its agent requests, not the entire archive.
+The Windows binary is unsigned; Windows may warn or block it. Keep protections enabled and [report the exact warning](https://github.com/fayzkk889/lore/issues). Check the [SHA-256 checksums](https://loredev.co/downloads/checksums.txt), [license](https://loredev.co/downloads/LICENSE.txt), and [third-party notices](https://loredev.co/downloads/THIRD_PARTY_NOTICES.txt).

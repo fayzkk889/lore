@@ -1,42 +1,19 @@
 # Lore
 
-Lore is local project memory for coding agents. It helps a fresh chat recover
-relevant decisions, constraints and unfinished work from accessible earlier
-conversations, with references to the source messages. You ask in your agent;
-Lore runs as an MCP server on your computer. Ordinary memory operations do not
-need a Lore account or hosted memory service.
+Lore is local project memory for desktop coding agents. In a new project chat, ask for relevant history; Lore retrieves cited messages from accessible local Codex, Claude Code, and Qwen Code conversations. Connected Codex and Claude Desktop sessions can use the same archive on one Windows PC.
 
-## Current developer preview
+## Windows alpha.24
 
-**0.10.0-alpha.11-mcp** is a free, closed-source MCP-only preview for **Codex and
-Claude Code on Windows through Ubuntu WSL 2**. It does not include Lore's original standalone
-coding agent, a new native Windows executable, or the browser extension. The
-Codex and Claude Code flows were tested in both directions on one PC. Other MCP
-clients have not yet been validated with this package.
+This release is free and closed source. There is no Lore account, hosted memory service, WSL requirement, or shell-script installer.
 
-Download [lore-mcp-linux](website/downloads/lore-mcp-linux) and
-[install-codex.ps1](website/downloads/install-codex.ps1) or
-[install-claude-code.ps1](website/downloads/install-claude-code.ps1) into the same folder,
-then follow the [setup guide](MCP_PREVIEW.md). The
-[checksums](website/downloads/checksums.txt),
-[license](website/downloads/LICENSE.txt) and
-[third-party notices](website/downloads/THIRD_PARTY_NOTICES.txt) accompany the
-download. The same static site files are in [website/](website/) for manual
-Cloudflare Pages upload.
+1. Start in the app you already use: [install the Claude Desktop extension](https://loredev.co/downloads/lore-memory-windows.mcpb), or [add the Windows MCP server](https://loredev.co/downloads/lore-mcp.exe) to a **local Codex task** as a STDIO server named `lore`.
+2. Ask: **“Connect Lore to all my coding apps. Tell me which connected and which need attention.”** Review the settings changes and restart newly connected apps.
+3. In a project chat, ask: **“Read the relevant history through Lore, then continue.”** Check cited source messages before relying on an important answer.
 
-Once installed, start a **new** Codex or Claude Code session in your project and say:
+See the [setup guide](https://loredev.co/docs), [SHA-256 checksums](https://loredev.co/downloads/checksums.txt), [binary license](https://loredev.co/downloads/LICENSE.txt), and [third-party notices](https://loredev.co/downloads/THIRD_PARTY_NOTICES.txt).
 
-```text
-Read the relevant history, then continue.
-```
+Automatic backfill covers accessible **local coding-agent** transcripts. A Claude Desktop extension can retrieve the shared archive and save deliberate checkpoints, but installing it does not expose ordinary Claude or ChatGPT cloud chat history. Regular ChatGPT chat does not run this local MCP connection. There is no cross-device sync. Retrieved chat statements are evidence, not proof that an external action happened.
 
-The installers add managed guidance for that plain request. You can name
-Lore explicitly when needed. Lore discovers accessible local Codex, Claude
-Code and Qwen Code session files, but it cannot automatically read cloud-only
-ChatGPT or Claude account history. Retrieved chat statements are evidence to
-inspect, not proof that an external action happened.
+Alpha.24 passed fresh-profile tests and live recall checks in Claude Desktop and Codex on one Windows PC. A clean-PC install remains unverified. The binary is unsigned, so Windows may warn or block it; keep protections enabled and [report the exact issue](https://github.com/fayzkk889/lore/issues) with private content redacted.
 
-Earlier alpha.7 downloads and browser-extension documentation remain in
-[legacy documentation](LEGACY_ALPHA7.md); those are outside this MCP-only
-preview. Source from earlier MIT-licensed releases retains its original terms.
-The current binary is governed by its bundled Free Binary License.
+Older standalone-agent and WSL files in this repository are historical, not this release. Earlier MIT-licensed source retains its original terms. The current executable uses its bundled Free Binary License.

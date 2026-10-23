@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.10.0-alpha.24 — original-source recall
+
+- Favors original chat turns over copied answers that cite them, including
+  cross-workspace fallback when a copied answer is the only local match.
+- Clarifies source attribution: recorded client roles do not prove human
+  authorship, and Lore cites project, conversation, and message IDs.
+- Rechecked fresh-profile onboarding, two-way local memory, missing-source
+  handling, and citation reopening against the release binary. Live Claude
+  Desktop and Codex checks passed on one Windows PC.
+- Ships a native Windows MCP server and Claude Desktop extension. A clean-PC
+  install remains unverified and Windows may warn about the unsigned binary.
+
+## v0.10.0-alpha.23 — desktop handoff and settings backups
+
+- Tested a native Windows Lore handoff between Claude Desktop and Codex.
+- Created a fresh pre-change backup whenever Lore updates an app's settings.
+
 ## v0.10.0-alpha.11-mcp — MCP memory reliability
 
 - Imports browser chat exports from ordinary Windows file paths when the MCP

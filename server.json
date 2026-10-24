@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.fayzkk889/lore-memory",
+  "title": "Lore Memory for Windows",
+  "description": "Cited local coding-agent history for fresh Codex and Claude Desktop chats on Windows.",
+  "websiteUrl": "https://loredev.co",
+  "repository": {
+    "url": "https://github.com/fayzkk889/lore",
+    "source": "github"
+  },
+  "version": "0.10.0-alpha.24",
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/fayzkk889/lore/releases/download/v0.10.0-alpha.24/lore-memory-windows.mcpb",
+      "fileSha256": "891d10125ac926672458dce27aba4ff73e5a501ac69219bcca634acc4a2c9265",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
